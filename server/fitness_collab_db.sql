@@ -19,7 +19,7 @@ CREATE TABLE trainers (
  
 CREATE TABLE specializations (
     id SERIAL PRIMARY KEY,
-    name VARCHAR(50) UNIQUE NOT NULL
+    name VARCHAR(30) UNIQUE NOT NULL
 );
 
 CREATE TABLE trainer_specializations (
