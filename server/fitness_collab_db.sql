@@ -6,7 +6,8 @@ CREATE TABLE users (
     name VARCHAR(30) NOT NULL,
     surname VARCHAR(30) NOT NULL,
     password_hash TEXT NOT NULL,
-    created_at TIMESTAMP DEFAULT NOW()
+    created_at TIMESTAMP DEFAULT NOW(),
+    refresh_token_hash TEXT
 );
 
 CREATE TABLE trainers (
