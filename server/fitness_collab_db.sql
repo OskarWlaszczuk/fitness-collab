@@ -29,3 +29,8 @@ CREATE TABLE trainer_specializations (
     FOREIGN KEY (trainer_id) REFERENCES trainers (id) ON DELETE CASCADE,
     FOREIGN KEY (specialization_id) REFERENCES specializations (id) ON DELETE CASCADE
 );
+
+CREATE TABLE roles (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(30) UNIQUE NOT NULL
+);
