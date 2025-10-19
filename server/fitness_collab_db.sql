@@ -2,9 +2,10 @@ CREATE DATABASE fitness_collab_db;
 
 CREATE TABLE users (
     id SERIAL PRIMARY KEY,
-    nickname VARCHAR(30) UNIQUE NOT NULL,
     name VARCHAR(30) NOT NULL,
     surname VARCHAR(30) NOT NULL,
+    email VARCHAR(30) NOT NULL,
+    nickname VARCHAR(30) UNIQUE NOT NULL,
     password_hash TEXT NOT NULL,
     created_at TIMESTAMP DEFAULT NOW(),
     refresh_token_hash VARCHAR(350)
