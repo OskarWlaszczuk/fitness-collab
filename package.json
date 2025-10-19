@@ -4,6 +4,8 @@
   "version": "0.0.0",
   "type": "module",
   "homepage": "https://oskarwlaszczuk.github.io/fitness-collab/",
+    "proxy": "http://localhost:5000",
+
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
