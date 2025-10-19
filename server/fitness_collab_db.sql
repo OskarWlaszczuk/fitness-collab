@@ -7,17 +7,25 @@ CREATE TABLE users (
     surname VARCHAR(30) NOT NULL,
     password_hash TEXT NOT NULL,
     created_at TIMESTAMP DEFAULT NOW(),
-    refresh_token_hash TEXT
+    refresh_token_hash VARCHAR(350)
 );
 
 CREATE TABLE trainers (
     id SERIAL PRIMARY KEY,
     user_id INT UNIQUE NOT NULL,
     created_at TIMESTAMP DEFAULT NOW(), 
-    description VARCHAR(255) NOT NULL,
+    description VARCHAR(255),
     FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
 );
  
+CREATE TABLE clients (
+    id SERIAL PRIMARY KEY,
+    user_id INT UNIQUE NOT NULL,
+    created_at TIMESTAMP DEFAULT NOW(), 
+    description VARCHAR(255),
+    FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
+);
+
 CREATE TABLE specializations (
     id SERIAL PRIMARY KEY,
     name VARCHAR(30) UNIQUE NOT NULL
