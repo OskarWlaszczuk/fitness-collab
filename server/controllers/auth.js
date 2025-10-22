@@ -61,37 +61,30 @@ export const registerUser = async ({ userData, roleName }) => {
     try {
         await client.query('BEGIN');
 
-        const { rows: insertedUserRows } = await client.query(
+        const { rows: userRows } = await client.query(
             "INSERT INTO users (email, name, surname, nickname, password_hash) \
             VALUES ($1, $2, $3, $4, $5) \
-            RETURNING id",
+            RETURNING id, name, surname, email, created_at",
             [...userData]
         );
-        const userId = insertedUserRows[0].id;
-        console.log("Inserted new user:", userId);
+        const user = userRows[0];
+        console.log("Inserted new user:", user);
 
         switch (roleName) {
             case "trainer":
-                await client.query('INSERT INTO trainers (user_id) VALUES ($1)', [userId]);
+                await client.query('INSERT INTO trainers (user_id) VALUES ($1)', [user.id]);
 
                 break;
             case "client":
-                await client.query('INSERT INTO clients (user_id) VALUES ($1)', [userId]);
+                await client.query('INSERT INTO clients (user_id) VALUES ($1)', [user.id]);
                 break;
             default:
                 throw new Error("Unknown role");
         }
         //czy generowanie JWT faktycznie musi być w transakcji?
-        const { accessToken, refreshToken, hashedRefreshToken } = await generareJWTs({ roleName, userId });
+        const { accessToken, refreshToken, hashedRefreshToken } = await generareJWTs({ roleName, userId: user.id });
 
-        await startUserTokenSession({ client, hashedRefreshToken, userId })
-
-        const { rows } = await client.query(
-            "SELECT name, nickname, surname, email, created_at FROM users WHERE id = $1",
-            [userId]
-        );
-
-        const user = rows[0];
+        await startUserTokenSession({ client, hashedRefreshToken, userId: user.id })
 
         await client.query('COMMIT');
 
