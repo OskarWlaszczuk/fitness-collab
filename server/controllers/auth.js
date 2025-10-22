@@ -45,10 +45,14 @@ const generareJWTs = async ({ userId, roleName }) => {
 
 //services
 export const startUserTokenSession = async ({ client, userId, hashedRefreshToken }) => {
-    await client.query(
-        "UPDATE users SET refresh_token_hash = $1 WHERE id = $2",
-        [hashedRefreshToken, userId]
-    );
+    try {
+        await client.query(
+            "UPDATE users SET refresh_token_hash = $1 WHERE id = $2",
+            [hashedRefreshToken, userId]
+        );
+    } catch (error) {
+        throw error
+    }
 };
 
 export const registerUser = async ({ userData, roleName }) => {
@@ -98,30 +102,46 @@ export const registerUser = async ({ userData, roleName }) => {
 };
 
 export const findRoleByName = async (roleName) => {
-    const { rows: roleRows } = await pool.query('SELECT * FROM roles WHERE name = $1', [roleName]);
+    try {
+        const { rows: roleRows } = await pool.query('SELECT * FROM roles WHERE name = $1', [roleName]);
+        console.log(roleName);
 
-    const role = roleRows[0];
-    const isRoleAvailable = roleRows.length > 0;
+        const role = roleRows?.[0];
+        const isRoleAvailable = roleRows.length > 0;
 
-    return { role, isRoleAvailable };
+        return { role, isRoleAvailable };
+    } catch (error) {
+        //jakim błędem tu rzucić
+        throw error
+    }
 };
 
 export const findUserByEmail = async (userEmail) => {
-    const { rows: userRows } = await pool.query('SELECT * FROM users WHERE email = $1', [userEmail]);
+    try {
+        const { rows: userRows } = await pool.query('SELECT * FROM users WHERE email = $1', [userEmail]);
 
-    const user = userRows?.[0];
-    const isEmailRegistered = userRows.length > 0;
+        const user = userRows?.[0];
+        const isEmailRegistered = userRows.length > 0;
 
-    return { isEmailRegistered, user };
+        return { isEmailRegistered, user };
+    } catch (error) {
+        //jakim błędem tu rzucić
+        throw error
+    }
 };
 
 export const findUserByNickname = async (userNickname) => {
-    const { rows: userRows } = await pool.query('SELECT * FROM users WHERE nickname = $1', [userNickname]);
+    try {
+        const { rows: userRows } = await pool.query('SELECT * FROM users WHERE nickname = $1', [userNickname]);
 
-    const user = userRows?.[0];
-    const isNicknameRegistered = userRows.length > 0;
+        const user = userRows?.[0];
+        const isNicknameRegistered = userRows.length > 0;
 
-    return { isNicknameRegistered, user };
+        return { isNicknameRegistered, user };
+    } catch (error) {
+        //jakim błędem tu rzucić
+        throw error
+    }
 };
 
 //controllers
