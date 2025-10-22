@@ -18,7 +18,7 @@ const generateAccessToken = (tokenPayload) => {
 
     return accessToken;
 };
-const generareJWTs = async ({ userId, roleName }) => {
+const generateJWTs = async ({ userId, roleName }) => {
     try {
         const tokenPayload = {
             userId: userId,
@@ -81,18 +81,10 @@ export const registerUser = async ({ userData, roleName }) => {
             default:
                 throw new Error("Unknown role");
         }
-        //czy generowanie JWT faktycznie musi być w transakcji?
-        const { accessToken, refreshToken, hashedRefreshToken } = await generareJWTs({ roleName, userId: user.id });
-
-        await startUserTokenSession({ client, hashedRefreshToken, userId: user.id })
 
         await client.query('COMMIT');
 
-        return {
-            accessToken,
-            refreshToken,
-            user,
-        };
+        return user;
     } catch (error) {
         await client.query('ROLLBACK');
         throw error;
@@ -107,7 +99,6 @@ export const findRoleByName = async (roleName) => {
 
         const role = roleRows?.[0];
         const isRoleAvailable = roleRows.length > 0;
-        console.log(role, isRoleAvailable);
 
         return { role, isRoleAvailable };
     } catch (error) {
@@ -151,7 +142,6 @@ export const register = async (request, response) => {
         const { email, name, surname, nickname, password, roleName } = request.body;
         console.log(`Registering user ${name}...`);
 
-        //service sprawdzający czy rola istnieje
         const { isRoleAvailable, role } = await findRoleByName(roleName);
 
         if (!isRoleAvailable) {
@@ -180,10 +170,15 @@ export const register = async (request, response) => {
 
         const hashedPassword = await bcrypt.hash(password, 10);
 
-        const { accessToken, user, refreshToken } = await registerUser({
+        const user = await registerUser({
             userData: [email, name, surname, nickname, hashedPassword],
             roleName,
         });
+
+        const { accessToken, refreshToken, hashedRefreshToken } = await generateJWTs({ roleName, userId: user.id });
+
+        await startUserTokenSession({ hashedRefreshToken, userId: user.id })
+
 
         response.cookie(
             process.env.COOKIE_NAME,
@@ -252,7 +247,7 @@ export const login = async (request, response) => {
                 .json({ success: false, message: "Invalid password" });
         }
 
-        const { accessToken, refreshToken, hashedRefreshToken } = await generareJWTs({ userId: user.id, roleName });
+        const { accessToken, refreshToken, hashedRefreshToken } = await generateJWTs({ userId: user.id, roleName });
         await startUserTokenSession({ client: pool, hashedRefreshToken, userId: user.id })
 
         response.cookie(
