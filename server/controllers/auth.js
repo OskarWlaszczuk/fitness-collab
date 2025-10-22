@@ -18,11 +18,11 @@ const generateAccessToken = (tokenPayload) => {
 
     return accessToken;
 };
-const generareJWTs = async ({ user, role }) => {
+const generareJWTs = async ({ userId, roleName }) => {
     try {
         const tokenPayload = {
-            userId: user.id,
-            role
+            userId: userId,
+            roleName,
         };
 
         const accessToken = generateAccessToken(tokenPayload);
@@ -44,14 +44,14 @@ const generareJWTs = async ({ user, role }) => {
 };
 
 //services
-const startUserTokenSession = async ({ client, userId, hashedRefreshToken }) => {
+export const startUserTokenSession = async ({ client, userId, hashedRefreshToken }) => {
     await client.query(
         "UPDATE users SET refresh_token_hash = $1 WHERE id = $2",
         [hashedRefreshToken, userId]
     );
 };
 
-const registerUser = async ({ userData, role }) => {
+export const registerUser = async ({ userData, roleName }) => {
     const client = await pool.connect();
 
     try {
@@ -66,19 +66,19 @@ const registerUser = async ({ userData, role }) => {
         const user = userRows[0];
         console.log("Inserted new user:", user);
 
-        if (role === "trainer") {
-            console.log(`registering new ${role}...`);
+        if (roleName === "trainer") {
+            console.log(`registering new ${roleName}...`);
 
             await client.query('INSERT INTO trainers (user_id) VALUES ($1)', [user.id]);
         }
 
-        if (role === "client") {
-            console.log(`registering new ${role}...`);
+        if (roleName === "client") {
+            console.log(`registering new ${roleName}...`);
 
             await client.query('INSERT INTO clients (user_id) VALUES ($1)', [user.id]);
         }
 
-        const { accessToken, refreshToken, hashedRefreshToken } = generareJWTs({ role, user });
+        const { accessToken, refreshToken, hashedRefreshToken } = generareJWTs({ role: roleName, user });
 
         await startUserTokenSession({ client, hashedRefreshToken, userId: user.id })
 
@@ -99,61 +99,60 @@ const registerUser = async ({ userData, role }) => {
 
 export const findRoleByName = async (roleName) => {
     const { rows: roleRows } = await pool.query('SELECT * FROM roles WHERE name = $1', [roleName]);
-    return roleRows;
+
+    const role = roleRows[0];
+    const isRoleAvailable = roleRows.length > 0;
+
+    return { role, isRoleAvailable };
+};
+
+export const findUserByEmail = async (userEmail) => {
+    const { rows: userRows } = await pool.query('SELECT * FROM users WHERE email = $1', [userEmail]);
+
+    const user = userRows?.[0];
+    const isEmailRegistered = userRows.length > 0;
+
+    return { isEmailRegistered, user };
+};
+
+export const findUserByNickname = async (userNickname) => {
+    const { rows: userRows } = await pool.query('SELECT * FROM users WHERE nickname = $1', [userNickname]);
+
+    const user = userRows?.[0];
+    const isNicknameRegistered = userRows.length > 0;
+
+    return { isNicknameRegistered, user };
 };
 
 //controllers
-export const getTrainerName = async (request, response) => {
-    const { trainerId } = request.body;
-
-    try {
-        //pobranie user_id
-        const { rows: trainerRows } = await pool.query('SELECT user_id FROM trainers WHERE id = $1', [trainerId]);
-
-        if (!trainerRows.length) {
-            console.log('Trainer does not exist');
-
-            return response
-                .status(409)
-                .json({ message: "Trainer does not exist" });
-        }
-
-        const { user_id: userId } = trainerRows[0];
-
-        const { rows: userRows } = await pool.query('SELECT name FROM users WHERE id = $1', [userId]);
-        const { name } = userRows[0];
-
-        return response.status(200).json({ name });
-    } catch (error) {
-        console.log(error);
-        return response
-    }
-};
 
 export const register = async (request, response) => {
     try {
-        const { email, name, surname, nickname, password, role } = request.body;
+        const { email, name, surname, nickname, password, roleName } = request.body;
         console.log(`Registering user ${name}...`);
 
         //service sprawdzający czy rola istnieje
-        const roleRows = findRoleByName(role);
-        if (!roleRows.length) {
-            console.log("Role does not exist");
+        const { isRoleAvailable } = findRoleByName(roleName);
 
+        if (!isRoleAvailable) {
+            console.log("Role does not exist");
+            //rzucać błędem o konkretnej nazwie i zwracać wszystkie błędne response w bloku catch?
             return response
                 .status(400)
                 .json({ message: "Invalid role" });
         }
 
-        const existingEmails = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
-        if (existingEmails.rows.length > 0) {
+        const { isEmailRegistered } = findUserByEmail(email);
+
+        if (isEmailRegistered) {
             console.log("Email is already registered");
 
             return response.status(409).json({ message: "Email already registered" });
         }
 
-        const existingNicknames = await pool.query('SELECT * FROM users WHERE nickname = $1', [nickname]);
-        if (existingNicknames.rows.length > 0) {
+        const { isNicknameRegistered } = findUserByNickname(nickname);
+
+        if (isNicknameRegistered) {
             console.log("Nickname is already registered");
 
             return response.status(409).json({ message: "Nickname already registered" });
@@ -163,7 +162,7 @@ export const register = async (request, response) => {
 
         const { accessToken, user, refreshToken } = registerUser({
             userData: [email, name, surname, nickname, hashedPassword],
-            role,
+            roleName,
         });
 
         response.cookie(
@@ -199,13 +198,13 @@ export const register = async (request, response) => {
 };
 
 export const login = async (request, response) => {
-    const { email, password, role } = request.body;
-    console.log(`logging ${role} ${email}...`);
+    const { email, password, roleName } = request.body;
+    console.log(`logging ${roleName} ${email}...`);
 
     try {
-        const roleRows = findRoleByName(role);
+        const { isRoleAvailable } = findRoleByName(roleName);
 
-        if (!roleRows.length) {
+        if (!isRoleAvailable) {
             console.log('Role does not exist');
 
             return response
@@ -213,8 +212,9 @@ export const login = async (request, response) => {
                 .json({ success: false, message: "Role doesn't exist" });
         }
 
-        const { rows: userRows } = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
-        if (!userRows.length) {
+        const { isEmailRegistered, user } = findUserByEmail(email);
+
+        if (!isEmailRegistered) {
             console.log('Email does not exist');
 
             return response
@@ -222,8 +222,7 @@ export const login = async (request, response) => {
                 .json({ message: "Email does not registered" });
         }
 
-        const { password_hash, refresh_token_hash, ...user } = userRows[0];
-        console.log(user);
+        const { password_hash, refresh_token_hash, ...responseUserData } = user;
 
         const isValidPassword = await bcrypt.compare(password, password_hash);
         if (!isValidPassword) {
@@ -233,7 +232,7 @@ export const login = async (request, response) => {
                 .json({ success: false, message: "Invalid password" });
         }
 
-        const { accessToken, refreshToken, hashedRefreshToken } = await generareJWTs({ user, role });
+        const { accessToken, refreshToken, hashedRefreshToken } = await generareJWTs({ userId: user.id, roleName });
         await startUserTokenSession({ client: pool, hashedRefreshToken, userId: user.id })
 
         response.cookie(
@@ -253,8 +252,8 @@ export const login = async (request, response) => {
             .json({
                 success: true,
                 data: {
-                    user,
-                    role,
+                    user: responseUserData,
+                    role: roleName,
                     accessToken,
                 }
             });
