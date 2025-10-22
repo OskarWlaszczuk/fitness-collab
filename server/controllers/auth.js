@@ -66,16 +66,16 @@ export const registerUser = async ({ userData, roleName }) => {
         const user = userRows[0];
         console.log("Inserted new user:", user);
 
-        if (roleName === "trainer") {
-            console.log(`registering new ${roleName}...`);
+        switch (roleName) {
+            case "trainer":
+                await client.query('INSERT INTO trainers (user_id) VALUES ($1)', [user.id]);
 
-            await client.query('INSERT INTO trainers (user_id) VALUES ($1)', [user.id]);
-        }
-
-        if (roleName === "client") {
-            console.log(`registering new ${roleName}...`);
-
-            await client.query('INSERT INTO clients (user_id) VALUES ($1)', [user.id]);
+                break;
+            case "client":
+                await client.query('INSERT INTO clients (user_id) VALUES ($1)', [user.id]);
+                break;
+            default:
+                throw new Error("Unknown role");
         }
 
         const { accessToken, refreshToken, hashedRefreshToken } = generareJWTs({ role: roleName, user });
