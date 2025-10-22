@@ -61,30 +61,37 @@ export const registerUser = async ({ userData, roleName }) => {
     try {
         await client.query('BEGIN');
 
-        const { rows: userRows } = await client.query(
+        const { rows: insertedUserRows } = await client.query(
             "INSERT INTO users (email, name, surname, nickname, password_hash) \
             VALUES ($1, $2, $3, $4, $5) \
-            RETURNING id, name, surname, email, nickname, created_at",
+            RETURNING id",
             [...userData]
         );
-        const user = userRows[0];
-        console.log("Inserted new user:", user);
+        const userId = insertedUserRows[0].id;
+        console.log("Inserted new user:", userId);
 
         switch (roleName) {
             case "trainer":
-                await client.query('INSERT INTO trainers (user_id) VALUES ($1)', [user.id]);
+                await client.query('INSERT INTO trainers (user_id) VALUES ($1)', [userId]);
 
                 break;
             case "client":
-                await client.query('INSERT INTO clients (user_id) VALUES ($1)', [user.id]);
+                await client.query('INSERT INTO clients (user_id) VALUES ($1)', [userId]);
                 break;
             default:
                 throw new Error("Unknown role");
         }
+        //czy generowanie JWT faktycznie musi być w transakcji?
+        const { accessToken, refreshToken, hashedRefreshToken } = await generareJWTs({ roleName, userId });
 
-        const { accessToken, refreshToken, hashedRefreshToken } = generareJWTs({ role: roleName, user });
+        await startUserTokenSession({ client, hashedRefreshToken, userId })
 
-        await startUserTokenSession({ client, hashedRefreshToken, userId: user.id })
+        const { rows } = await client.query(
+            "SELECT name, nickname, surname, email, created_at FROM users WHERE id = $1",
+            [userId]
+        );
+
+        const user = rows[0];
 
         await client.query('COMMIT');
 
@@ -104,10 +111,10 @@ export const registerUser = async ({ userData, roleName }) => {
 export const findRoleByName = async (roleName) => {
     try {
         const { rows: roleRows } = await pool.query('SELECT * FROM roles WHERE name = $1', [roleName]);
-        console.log(roleName);
 
         const role = roleRows?.[0];
         const isRoleAvailable = roleRows.length > 0;
+        console.log(role, isRoleAvailable);
 
         return { role, isRoleAvailable };
     } catch (error) {
@@ -152,17 +159,17 @@ export const register = async (request, response) => {
         console.log(`Registering user ${name}...`);
 
         //service sprawdzający czy rola istnieje
-        const { isRoleAvailable } = findRoleByName(roleName);
+        const { isRoleAvailable, role } = await findRoleByName(roleName);
 
         if (!isRoleAvailable) {
-            console.log("Role does not exist");
+            console.log("Role does not exist", isRoleAvailable);
             //rzucać błędem o konkretnej nazwie i zwracać wszystkie błędne response w bloku catch?
             return response
                 .status(400)
                 .json({ message: "Invalid role" });
         }
 
-        const { isEmailRegistered } = findUserByEmail(email);
+        const { isEmailRegistered } = await findUserByEmail(email);
 
         if (isEmailRegistered) {
             console.log("Email is already registered");
@@ -170,7 +177,7 @@ export const register = async (request, response) => {
             return response.status(409).json({ message: "Email already registered" });
         }
 
-        const { isNicknameRegistered } = findUserByNickname(nickname);
+        const { isNicknameRegistered } = await findUserByNickname(nickname);
 
         if (isNicknameRegistered) {
             console.log("Nickname is already registered");
@@ -180,7 +187,7 @@ export const register = async (request, response) => {
 
         const hashedPassword = await bcrypt.hash(password, 10);
 
-        const { accessToken, user, refreshToken } = registerUser({
+        const { accessToken, user, refreshToken } = await registerUser({
             userData: [email, name, surname, nickname, hashedPassword],
             roleName,
         });
@@ -222,7 +229,7 @@ export const login = async (request, response) => {
     console.log(`logging ${roleName} ${email}...`);
 
     try {
-        const { isRoleAvailable } = findRoleByName(roleName);
+        const { isRoleAvailable, role } = await findRoleByName(roleName);
 
         if (!isRoleAvailable) {
             console.log('Role does not exist');
@@ -232,7 +239,7 @@ export const login = async (request, response) => {
                 .json({ success: false, message: "Role doesn't exist" });
         }
 
-        const { isEmailRegistered, user } = findUserByEmail(email);
+        const { isEmailRegistered, user } = await findUserByEmail(email);
 
         if (!isEmailRegistered) {
             console.log('Email does not exist');
@@ -273,7 +280,7 @@ export const login = async (request, response) => {
                 success: true,
                 data: {
                     user: responseUserData,
-                    role: roleName,
+                    role,
                     accessToken,
                 }
             });
