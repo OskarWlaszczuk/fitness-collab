@@ -54,7 +54,6 @@ export const startUserTokenSession = async ({ client, userId, hashedRefreshToken
         throw error
     }
 };
-
 export const registerUser = async ({ userData, roleName }) => {
     const client = await pool.connect();
 
@@ -73,13 +72,14 @@ export const registerUser = async ({ userData, roleName }) => {
         switch (roleName) {
             case "trainer":
                 await client.query('INSERT INTO trainers (user_id) VALUES ($1)', [user.id]);
-
                 break;
+
             case "client":
                 await client.query('INSERT INTO clients (user_id) VALUES ($1)', [user.id]);
                 break;
+
             default:
-                throw new Error("Unknown role");
+                throw new Error("Invalid role");
         }
 
         await client.query('COMMIT');
@@ -92,7 +92,6 @@ export const registerUser = async ({ userData, roleName }) => {
         client.release();
     }
 };
-
 export const findRoleByName = async (roleName) => {
     try {
         const { rows: roleRows } = await pool.query('SELECT * FROM roles WHERE name = $1', [roleName]);
@@ -102,11 +101,10 @@ export const findRoleByName = async (roleName) => {
 
         return { role, isRoleAvailable };
     } catch (error) {
-        //jakim błędem tu rzucić
-        throw error
+        //jakim błędem tu rzucić?
+        throw error;
     }
 };
-
 export const findUserByEmail = async (userEmail) => {
     try {
         const { rows: userRows } = await pool.query('SELECT * FROM users WHERE email = $1', [userEmail]);
@@ -120,7 +118,6 @@ export const findUserByEmail = async (userEmail) => {
         throw error
     }
 };
-
 export const findUserByNickname = async (userNickname) => {
     try {
         const { rows: userRows } = await pool.query('SELECT * FROM users WHERE nickname = $1', [userNickname]);
@@ -144,29 +141,15 @@ export const register = async (request, response) => {
 
         const { isRoleAvailable, role } = await findRoleByName(roleName);
 
-        if (!isRoleAvailable) {
-            console.log("Role does not exist", isRoleAvailable);
-            //rzucać błędem o konkretnej nazwie i zwracać wszystkie błędne response w bloku catch?
-            return response
-                .status(400)
-                .json({ message: "Invalid role" });
-        }
+        if (!isRoleAvailable) { throw new Error("Invalid role"); }
 
         const { isEmailRegistered } = await findUserByEmail(email);
 
-        if (isEmailRegistered) {
-            console.log("Email is already registered");
-
-            return response.status(409).json({ message: "Email already registered" });
-        }
+        if (isEmailRegistered) { throw new Error("Email registered"); }
 
         const { isNicknameRegistered } = await findUserByNickname(nickname);
 
-        if (isNicknameRegistered) {
-            console.log("Nickname is already registered");
-
-            return response.status(409).json({ message: "Nickname already registered" });
-        }
+        if (isNicknameRegistered) { throw new Error("Nickname registered"); }
 
         const hashedPassword = await bcrypt.hash(password, 10);
 
@@ -178,7 +161,6 @@ export const register = async (request, response) => {
         const { accessToken, refreshToken, hashedRefreshToken } = await generateJWTs({ roleName, userId: user.id });
 
         await startUserTokenSession({ hashedRefreshToken, userId: user.id })
-
 
         response.cookie(
             process.env.COOKIE_NAME,
@@ -203,12 +185,19 @@ export const register = async (request, response) => {
     } catch (error) {
         console.log(error);
 
-        return response
-            .status(500)
-            .json({
-                success: false,
-                message: "Internal server error"
-            });
+        if (error.message === "Invalid role") {
+            return response.status(400).json({ message: error.message });
+        }
+
+        if (error.message === "Email registered") {
+            return response.status(400).json({ message: error.message });
+        }
+
+        if (error.message === "Nickname registered") {
+            return response.status(409).json({ message: error.message });
+        }
+
+        return response.status(500).json({ message: "Internal server error" });
     }
 };
 
