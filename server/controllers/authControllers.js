@@ -56,67 +56,60 @@ export const registerUser = async ({ userData, roleName }) => {
         client.release();
     }
 };
-export const findRoleByName = async (roleName) => {
+
+const findEntityByColumnField = async ({ entitiesTable, columnName, columnField }) => {
     try {
-        const { rows: roleRows } = await pool.query('SELECT * FROM roles WHERE name = $1', [roleName]);
+        const { rows: entityRows } = await pool.query(`SELECT * FROM ${entitiesTable} WHERE ${columnName} = $1`, [columnField]);
 
-        const role = roleRows?.[0];
-        const isRoleAvailable = roleRows.length > 0;
+        const entity = entityRows?.[0];
+        const isEntityAvailable = entityRows.length > 0;
 
-        return { role, isRoleAvailable };
+        return { entity, isEntityAvailable };
     } catch (error) {
         //jakim błędem tu rzucić?
         throw error;
     }
-};
-export const findUserByEmail = async (userEmail) => {
-    try {
-        const { rows: userRows } = await pool.query('SELECT * FROM users WHERE email = $1', [userEmail]);
-
-        const user = userRows?.[0];
-        const isEmailRegistered = userRows.length > 0;
-
-        return { isEmailRegistered, user };
-    } catch (error) {
-        //jakim błędem tu rzucić
-        throw error
-    }
-};
-export const findUserByNickname = async (userNickname) => {
-    try {
-        const { rows: userRows } = await pool.query('SELECT * FROM users WHERE nickname = $1', [userNickname]);
-
-        const user = userRows?.[0];
-        const isNicknameRegistered = userRows.length > 0;
-
-        return { isNicknameRegistered, user };
-    } catch (error) {
-        //jakim błędem tu rzucić
-        throw error
-    }
-};
+}
 
 //controllers
 
 export const register = asyncErrorHandler(async (request, response, next) => {
     const { email, name, surname, nickname, password, roleName } = request.body;
-    console.log(`Registering user ${name}...`);
 
-    const { isRoleAvailable, role } = await findRoleByName(roleName);
+    const {
+        isEntityAvailable: isRoleAvailable,
+        entity: role
+    } = await findEntityByColumnField({
+        entitiesTable: "roles",
+        columnName: "name",
+        columnField: roleName
+    });
 
     if (!isRoleAvailable) {
         const error = new CustomError("invalid role", 400);
         next(error);
     }
 
-    const { isEmailRegistered } = await findUserByEmail(email);
+    const {
+        isEntityAvailable: isEmailRegistered,
+    } = await findEntityByColumnField({
+        entitiesTable: "users",
+        columnName: "email",
+        columnField: email
+    });
 
     if (isEmailRegistered) {
         const error = new CustomError(`email ${email} already registered`, 409);
         next(error);
     }
 
-    const { isNicknameRegistered } = await findUserByNickname(nickname);
+    const {
+        isEntityAvailable: isNicknameRegistered,
+    } = await findEntityByColumnField({
+        entitiesTable: "users",
+        columnName: "nickname",
+        columnField: nickname
+    });
 
     if (isNicknameRegistered) {
         const error = new CustomError(`Nickname ${nickname} already registered`, 409);
@@ -159,14 +152,28 @@ export const login = asyncErrorHandler(async (request, response, next) => {
     const { email, password, roleName } = request.body;
     console.log(`logging ${roleName} ${email}...`);
 
-    const { isRoleAvailable, role } = await findRoleByName(roleName);
+    const {
+        isEntityAvailable: isRoleAvailable,
+        entity: role
+    } = await findEntityByColumnField({
+        entitiesTable: "roles",
+        columnName: "name",
+        columnField: roleName
+    });
 
     if (!isRoleAvailable) {
         const error = new CustomError("invalid role", 400);
         next(error);
     }
 
-    const { isEmailRegistered, user } = await findUserByEmail(email);
+    const {
+        isEntityAvailable: isEmailRegistered,
+        entity: user
+    } = await findEntityByColumnField({
+        entitiesTable: "users",
+        columnName: "email",
+        columnField: email
+    });
 
     if (!isEmailRegistered) {
         const error = new CustomError(`email ${email} does not registered`, 409);
