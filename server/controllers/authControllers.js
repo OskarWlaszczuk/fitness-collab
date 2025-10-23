@@ -1,48 +1,11 @@
 import { config } from "dotenv";
 import { pool } from "../db.js";
-import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt";
 import { CustomError } from "../utils/CustomError.js";
+import { generateJWTs } from "../utils/generateJWTs.js";
+import { asyncErrorHandler } from "../utils/asyncErrorHandler.js"
 
 config();
-//czy poniższe funkcje to servicy?
-
-//helpers
-const generateAccessToken = (tokenPayload) => {
-    const accessToken = jwt.sign(
-        tokenPayload,
-        process.env.ACCESS_TOKEN_SECRET,
-        {
-            expiresIn: process.env.ACCESS_TTL,
-        }
-    );
-
-    return accessToken;
-};
-const generateJWTs = async ({ userId, roleName }) => {
-    try {
-        const tokenPayload = {
-            userId: userId,
-            roleName,
-        };
-
-        const accessToken = generateAccessToken(tokenPayload);
-
-        const refreshToken = jwt.sign(
-            tokenPayload,
-            process.env.REFRESH_TOKEN_SECRET,
-            {
-                expiresIn: process.env.REFRESH_TTL
-            }
-        );
-
-        const hashedRefreshToken = await bcrypt.hash(refreshToken, 10);
-
-        return { accessToken, refreshToken, hashedRefreshToken };
-    } catch (error) {
-        throw error
-    }
-};
 
 //services
 export const startUserTokenSession = async ({ userId, hashedRefreshToken }) => {
