@@ -24,6 +24,27 @@ app.use(express.static(path.join(__dirname, "../client/public")));
 
 app.use("/api/auth", authRouter);
 
+app.use((request, response, next) => {
+    const error = new Error(`Can't find ${request.originalUrl} on the server`);
+    error.status = "fail";
+    error.statusCode = 404;
+
+    next(error);
+});
+
+const globalErrorMiddleware = (error, request, response, next) => {
+    error.statusCode = error.statusCode || 500;
+    error.status = error.status || "error";
+
+    console.log(error);
+
+    response
+        .status(error.statusCode)
+        .json({ message: error.message, status: error.statusCode });
+};
+
+app.use(globalErrorMiddleware);
+
 app.listen(5000, () => {
     console.log("Server is listening on port 5000...");
 })
