@@ -2,6 +2,7 @@ import { config } from "dotenv";
 import { pool } from "../db.js";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt";
+import { CustomError } from "../utils/CustomError.js";
 
 config();
 //czy poniższe funkcje to servicy?
@@ -44,9 +45,9 @@ const generateJWTs = async ({ userId, roleName }) => {
 };
 
 //services
-export const startUserTokenSession = async ({ client, userId, hashedRefreshToken }) => {
+export const startUserTokenSession = async ({ userId, hashedRefreshToken }) => {
     try {
-        await client.query(
+        await pool.query(
             "UPDATE users SET refresh_token_hash = $1 WHERE id = $2",
             [hashedRefreshToken, userId]
         );
@@ -79,7 +80,7 @@ export const registerUser = async ({ userData, roleName }) => {
                 break;
 
             default:
-                throw new Error("Invalid role");
+                throw new CustomError("invalid role", 400);
         }
 
         await client.query('COMMIT');
@@ -134,137 +135,122 @@ export const findUserByNickname = async (userNickname) => {
 
 //controllers
 
-export const register = async (request, response) => {
-    try {
-        const { email, name, surname, nickname, password, roleName } = request.body;
-        console.log(`Registering user ${name}...`);
-
-        const { isRoleAvailable, role } = await findRoleByName(roleName);
-
-        if (!isRoleAvailable) { throw new Error("Invalid role"); }
-
-        const { isEmailRegistered } = await findUserByEmail(email);
-
-        if (isEmailRegistered) { throw new Error("Email registered"); }
-
-        const { isNicknameRegistered } = await findUserByNickname(nickname);
-
-        if (isNicknameRegistered) { throw new Error("Nickname registered"); }
-
-        const hashedPassword = await bcrypt.hash(password, 10);
-
-        const user = await registerUser({
-            userData: [email, name, surname, nickname, hashedPassword],
-            roleName,
-        });
-
-        const { accessToken, refreshToken, hashedRefreshToken } = await generateJWTs({ roleName, userId: user.id });
-
-        await startUserTokenSession({ hashedRefreshToken, userId: user.id })
-
-        response.cookie(
-            process.env.COOKIE_NAME,
-            refreshToken,
-            {
-                httpOnly: true,
-                secure: false,
-                sameSite: "lax",
-                path: process.env.COOKIE_PATH,
-                maxAge: 7 * 24 * 3600 * 1000,
-            }
-        );
-
-        return response
-            .status(200)
-            .json({
-                accessToken,
-                user,
-                role
-            });
-
-    } catch (error) {
-        console.log(error);
-
-        if (error.message === "Invalid role") {
-            return response.status(400).json({ message: error.message });
+export const asyncErrorHandler = (controller) => {
+    return async (request, response, next) => {
+        try {
+            await controller(request, response, next)
+        } catch (error) {
+            next(error);
         }
-
-        if (error.message === "Email registered") {
-            return response.status(400).json({ message: error.message });
-        }
-
-        if (error.message === "Nickname registered") {
-            return response.status(409).json({ message: error.message });
-        }
-
-        return response.status(500).json({ message: "Internal server error" });
     }
 };
 
-export const login = async (request, response) => {
+export const register = asyncErrorHandler(async (request, response, next) => {
+    const { email, name, surname, nickname, password, roleName } = request.body;
+    console.log(`Registering user ${name}...`);
+
+    const { isRoleAvailable, role } = await findRoleByName(roleName);
+
+    if (!isRoleAvailable) {
+        const error = new CustomError("invalid role", 400);
+        next(error);
+    }
+
+    const { isEmailRegistered } = await findUserByEmail(email);
+
+    if (isEmailRegistered) {
+        const error = new CustomError(`email ${email} already registered`, 409);
+        next(error);
+    }
+
+    const { isNicknameRegistered } = await findUserByNickname(nickname);
+
+    if (isNicknameRegistered) {
+        const error = new CustomError(`Nickname ${nickname} already registered`, 409);
+        next(error);
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    const user = await registerUser({
+        userData: [email, name, surname, nickname, hashedPassword],
+        roleName,
+    });
+
+    const { accessToken, refreshToken, hashedRefreshToken } = await generateJWTs({ roleName, userId: user.id });
+
+    await startUserTokenSession({ hashedRefreshToken, userId: user.id })
+
+    response.cookie(
+        process.env.COOKIE_NAME,
+        refreshToken,
+        {
+            httpOnly: true,
+            secure: false,
+            sameSite: "lax",
+            path: process.env.COOKIE_PATH,
+            maxAge: 7 * 24 * 3600 * 1000,
+        }
+    );
+
+    return response
+        .status(200)
+        .json({
+            accessToken,
+            user,
+            role
+        });
+});
+
+export const login = asyncErrorHandler(async (request, response, next) => {
     const { email, password, roleName } = request.body;
     console.log(`logging ${roleName} ${email}...`);
 
-    try {
-        const { isRoleAvailable, role } = await findRoleByName(roleName);
+    const { isRoleAvailable, role } = await findRoleByName(roleName);
 
-        if (!isRoleAvailable) {
-            console.log('Role does not exist');
-
-            return response
-                .status(400)
-                .json({ success: false, message: "Role doesn't exist" });
-        }
-
-        const { isEmailRegistered, user } = await findUserByEmail(email);
-
-        if (!isEmailRegistered) {
-            console.log('Email does not exist');
-
-            return response
-                .status(409)
-                .json({ message: "Email does not registered" });
-        }
-
-        const { password_hash, refresh_token_hash, ...responseUserData } = user;
-
-        const isValidPassword = await bcrypt.compare(password, password_hash);
-        if (!isValidPassword) {
-            //czy w sytuacji, gdy isValidPassword jest false powinienem obsłużyć ten błąd tutaj w warunku bloku try i tuaj zwrócić odpowiedź, czy rzuci wyjątek i obsłużyć go catch?
-            return response
-                .status(401)
-                .json({ success: false, message: "Invalid password" });
-        }
-
-        const { accessToken, refreshToken, hashedRefreshToken } = await generateJWTs({ userId: user.id, roleName });
-        await startUserTokenSession({ client: pool, hashedRefreshToken, userId: user.id })
-
-        response.cookie(
-            process.env.COOKIE_NAME,
-            refreshToken,
-            {
-                httpOnly: true,
-                secure: false,
-                sameSite: "lax",
-                path: process.env.COOKIE_PATH,
-                maxAge: 7 * 24 * 3600 * 1000,
-            }
-        );
-
-        response
-            .status(201)
-            .json({
-                success: true,
-                data: {
-                    user: responseUserData,
-                    role,
-                    accessToken,
-                }
-            });
-    } catch (error) {
-        console.error("error in login controller", error.message);
-        response
-            .status(500)
-            .json({ success: false, message: "Internal server error" });
+    if (!isRoleAvailable) {
+        const error = new CustomError("invalid role", 400);
+        next(error);
     }
-};
+
+    const { isEmailRegistered, user } = await findUserByEmail(email);
+
+    if (!isEmailRegistered) {
+        const error = new CustomError(`email ${email} does not registered`, 409);
+        next(error);
+    }
+
+    const { password_hash, refresh_token_hash, ...responseUserData } = user;
+
+    const isValidPassword = await bcrypt.compare(password, password_hash);
+    if (!isValidPassword) {
+        const error = new CustomError("invalid password", 409);
+        next(error);
+    }
+
+    const { accessToken, refreshToken, hashedRefreshToken } = await generateJWTs({ userId: user.id, roleName });
+    await startUserTokenSession({ hashedRefreshToken, userId: user.id })
+
+    response.cookie(
+        process.env.COOKIE_NAME,
+        refreshToken,
+        {
+            httpOnly: true,
+            secure: false,
+            sameSite: "lax",
+            path: process.env.COOKIE_PATH,
+            maxAge: 7 * 24 * 3600 * 1000,
+        }
+    );
+
+    response
+        .status(201)
+        .json({
+            success: true,
+            data: {
+                user: responseUserData,
+                role,
+                accessToken,
+            }
+        });
+});
