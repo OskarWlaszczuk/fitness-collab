@@ -7,6 +7,7 @@ import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 import authRouter from "./routes/authRouter.js";
 import { globalErrorHandler } from "./controllers/errorControllers.js";
+import { CustomError } from "./utils/CustomError.js";
 config();
 
 const __filename = fileURLToPath(import.meta.url);
@@ -26,10 +27,7 @@ app.use(express.static(path.join(__dirname, "../client/public")));
 app.use("/api/auth", authRouter);
 
 const fallbackApiHandler = (request, response, next) => {
-    const error = new Error(`Can't find ${request.originalUrl} on the server`);
-    error.status = "fail";
-    error.statusCode = 404;
-
+    const error = new CustomError(`Can't find ${request.originalUrl} on the server`, 404);
     next(error);
 };
 
