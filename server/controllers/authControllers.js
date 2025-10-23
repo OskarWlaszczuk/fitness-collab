@@ -135,16 +135,6 @@ export const findUserByNickname = async (userNickname) => {
 
 //controllers
 
-export const asyncErrorHandler = (controller) => {
-    return async (request, response, next) => {
-        try {
-            await controller(request, response, next)
-        } catch (error) {
-            next(error);
-        }
-    }
-};
-
 export const register = asyncErrorHandler(async (request, response, next) => {
     const { email, name, surname, nickname, password, roleName } = request.body;
     console.log(`Registering user ${name}...`);
