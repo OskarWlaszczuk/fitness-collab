@@ -8,6 +8,7 @@ import { findEntityByColumnField } from "../services/findEntityByColumnField.js"
 import { startUserTokenSession } from "../services/startUserTokenSession.js";
 import { generateAccessToken } from "../utils/generateAccessToken.js";
 import { endUserTokenSession } from "../services/endUserTokenSession.js";
+import { validatePassword } from "../utils/validatePassword.js";
 
 config();
 
@@ -149,7 +150,7 @@ export const login = asyncErrorHandler(async (request, response, next) => {
 
     const { password_hash, refresh_token_hash, ...responseUserData } = user;
 
-    const isValidPassword = await bcrypt.compare(password, password_hash);
+    const isValidPassword = await validatePassword(password, password_hash);
     if (!isValidPassword) {
         const error = new CustomError("invalid password", 409);
         next(error);
