@@ -1,4 +1,5 @@
 import { pool } from "../db.js";
+import { CustomError } from "../utils/CustomError.js";
 
 export const findEntityByColumnField = async ({ entitiesTable, columnName, columnField }) => {
     try {
@@ -9,6 +10,6 @@ export const findEntityByColumnField = async ({ entitiesTable, columnName, colum
 
         return { entity, isEntityAvailable };
     } catch (error) {
-        throw error;
+        throw new CustomError("Internal database error", 500);
     }
 };

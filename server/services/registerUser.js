@@ -1,4 +1,5 @@
 import { pool } from "../db.js";
+import { CustomError } from "../utils/CustomError.js";
 
 export const registerUser = async ({ userData, roleName }) => {
     const client = await pool.connect();
@@ -32,7 +33,8 @@ export const registerUser = async ({ userData, roleName }) => {
         return user;
     } catch (error) {
         await client.query('ROLLBACK');
-        throw error;
+        throw new CustomError("Internal database error", 500);
+
     } finally {
         client.release();
     }

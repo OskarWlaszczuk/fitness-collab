@@ -1,6 +1,12 @@
 import { config } from "dotenv";
-
+import { CustomError } from "../utils/CustomError.js"
 config();
+
+// const castErrorHandler = (error) => {
+//     const message = `Invalid value ${error.value} for filed ${error.path}`
+
+//     return new CustomError(message, 400);
+// };
 
 const devErrors = (error, response) => {
     response.status(error.statusCode).json({
@@ -36,6 +42,13 @@ export const globalErrorHandler = (error, request, response, next) => {
             break;
 
         case "production":
+            // let productionError = { ...error };
+            // console.log("Error caught in globalErrorHandler:", error);
+
+            // if (error.name = "CastError") {
+            //     productionError = castErrorHandler(error);
+            // }
+
             prodErrors(error, response);
             break;
 

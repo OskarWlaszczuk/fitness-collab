@@ -1,4 +1,5 @@
 import { pool } from "../db.js";
+import { CustomError } from "../utils/CustomError.js";
 
 export const endUserTokenSession = async (userId) => {
     try {
@@ -7,6 +8,6 @@ export const endUserTokenSession = async (userId) => {
             [userId]
         );
     } catch (error) {
-        throw error;
+        throw new CustomError("Internal database error", 500);
     }
 };
