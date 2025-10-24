@@ -1,6 +1,6 @@
 import { CustomError } from "../utils/CustomError.js";
 
-export const isRefreshTokenStoredInCoookies = (request, response, next) => {
+export const chechRefreshTokenInCookies = (request, response, next) => {
     console.log("checking is rt stored in coookies");
 
     const refreshToken = request.cookies?.refreshToken;
@@ -10,5 +10,5 @@ export const isRefreshTokenStoredInCoookies = (request, response, next) => {
         return next(error);
     }
 
-    next();
+    return next();
 };
