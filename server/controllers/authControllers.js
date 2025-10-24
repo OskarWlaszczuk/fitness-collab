@@ -11,7 +11,7 @@ import { endUserTokenSession } from "../services/endUserTokenSession.js";
 
 config();
 
-export const refreshAccessToken = async (request, response) => {
+export const refreshAccessToken = asyncErrorHandler(async (request, response) => {
     console.log("refreshing token...");
     const { userId, roleName } = request.tokenPayload;
 
@@ -21,9 +21,9 @@ export const refreshAccessToken = async (request, response) => {
 
     console.log(`Access token odświeżony: ${accessToken}`);
     response.status(200).json({ accessToken });
-};
+});
 
-export const logout = async (request, response) => {
+export const logout = asyncErrorHandler(async (request, response) => {
     console.log("loagoutting user...");
     const { tokenPayload } = request;
 
@@ -39,7 +39,7 @@ export const logout = async (request, response) => {
     console.log("user logouted");
 
     response.sendStatus(204);
-};
+});
 
 export const register = asyncErrorHandler(async (request, response, next) => {
     const { email, name, surname, nickname, password, roleName } = request.body;
