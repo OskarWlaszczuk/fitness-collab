@@ -3,7 +3,7 @@ export const asyncErrorHandler = (controller) => {
         try {
             await controller(request, response, next)
         } catch (error) {
-            next(error);
+            return next(error);
         }
     }
 };
