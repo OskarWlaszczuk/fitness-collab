@@ -6,8 +6,40 @@ import { asyncErrorHandler } from "../utils/asyncErrorHandler.js"
 import { registerUser } from "../services/registerUser.js";
 import { findEntityByColumnField } from "../services/findEntityByColumnField.js";
 import { startUserTokenSession } from "../services/startUserTokenSession.js";
+import { generateAccessToken } from "../utils/generateAccessToken.js";
+import { endUserTokenSession } from "../services/endUserTokenSession.js";
 
 config();
+
+export const refreshAccessToken = async (request, response) => {
+    console.log("refreshing token...");
+    const { userId, roleName } = request.tokenPayload;
+
+    const tokenPayload = { userId, roleName };
+
+    const accessToken = generateAccessToken(tokenPayload);
+
+    console.log(`Access token odświeżony: ${accessToken}`);
+    response.status(200).json({ accessToken });
+};
+
+export const logout = async (request, response) => {
+    console.log("loagoutting user...");
+    const { tokenPayload } = request;
+
+    await endUserTokenSession(tokenPayload.userId);
+
+    response.clearCookie(process.env.COOKIE_NAME, {
+        httpOnly: true,
+        secure: false,
+        sameSite: "lax",
+        path: process.env.COOKIE_PATH,
+    });
+
+    console.log("user logouted");
+
+    response.sendStatus(204);
+};
 
 export const register = asyncErrorHandler(async (request, response, next) => {
     const { email, name, surname, nickname, password, roleName } = request.body;
