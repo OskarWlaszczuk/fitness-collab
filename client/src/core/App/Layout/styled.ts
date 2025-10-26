@@ -11,6 +11,7 @@ export const StyledLayout = styled.div`
   height: 100%;
   grid-gap: 8px;
   padding: 10px;
+  height: 100vh;
 `;
 
 export const MainContent = styled.main``;
