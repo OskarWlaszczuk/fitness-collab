@@ -40,7 +40,15 @@ CREATE TABLE trainer_specializations (
     FOREIGN KEY (specialization_id) REFERENCES specializations (id) ON DELETE CASCADE
 );
 
-CREATE TABLE roles (
+CREATE TABLE modes (
     id SERIAL PRIMARY KEY,
     name VARCHAR(30) UNIQUE NOT NULL
+);
+
+CREATE TABLE user_modes (
+    user_id INT NOT NULL,
+    mode_id INT NOT NULL,
+    PRIMARY KEY (user_id, mode_id),
+    FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE,
+    FOREIGN KEY (mode_id) REFERENCES modes (id) ON DELETE CASCADE
 );
