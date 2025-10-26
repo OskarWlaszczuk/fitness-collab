@@ -3,7 +3,7 @@ import { verifyJwt } from "../utils/verifyJwt.js";
 import { CustomError } from "../utils/CustomError.js";
 config();
 
-export const validateRefreshTokenSecret = async (request, response, next) => {
+export const validateRefreshTokenSignature = async (request, response, next) => {
     console.log("cheching is rt secret valid...");
 
     const refreshToken = request.cookies?.refreshToken;
