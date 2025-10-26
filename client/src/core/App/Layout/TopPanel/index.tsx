@@ -6,8 +6,8 @@ export const TopPanel = () => {
 
     return (
         <StyledTopPanel>
-            <NavLink to="/login">Login</NavLink>
-            <NavLink to="/register">Register</NavLink>
+            <NavLink to="/fitness-collab/auth/login">Login</NavLink>
+            <NavLink to="/fitness-collab/auth/register">Register</NavLink>
         </StyledTopPanel>
     );
 };
