@@ -1,20 +1,27 @@
-import { HashRouter, Navigate, Route, Routes } from "react-router-dom"
+import { Navigate, Route, Routes } from "react-router-dom"
 import { Home } from "../../features/home";
 import { Layout } from "./Layout";
 import { Register } from "./Register";
+import { useAccessTokenQuery } from "../../common/hooks/useAccessTokenQuery";
 
 export const App = () => {
+  const { accessToken } = useAccessTokenQuery();
+  console.log(accessToken);
+  const baseUrl = "/fitness-collab";
+  const baseAuthUrl = `${baseUrl}/auth`;
+
+  const getRouteUrl = (route: string) => `${baseUrl}/${route}`;
+  const getAuthRouteUrl = (authRoute: string) => `${baseAuthUrl}/${authRoute}`;
+
   return (
-    <HashRouter>
-      <Routes>
-        <Route path="/" element={<Layout />}>
-          <Route path="/home" element={<Home />} />
-          <Route path="*" element={<Navigate to={"/home"} replace />} />
-          {/* <Route path="/auth/login" element={<Login />} /> */}
-          <Route path="/auth/register" element={<Register />} />
-          <Route path="/auth/*" element={<Navigate to="/auth/register" replace />} />
-        </Route>
-      </Routes>
-    </HashRouter>
+    <Routes>
+      <Route path="/" element={<Layout />}>
+        <Route path={getRouteUrl("home")} element={<Home />} />
+        <Route path="*" element={<Navigate to={getRouteUrl("home")} replace />} />
+      </Route>
+      {/* <Route path="/auth/login" element={<Login />} /> */}
+      <Route path={getAuthRouteUrl("register")} element={<Register />} />
+      <Route path={`${baseAuthUrl}/*`} element={<Navigate to={getAuthRouteUrl("register")} replace />} />
+    </Routes>
   );
 };
