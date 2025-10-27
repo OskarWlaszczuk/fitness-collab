@@ -5,7 +5,7 @@ export const useAccessTokenQuery = () => {
     const refreshTimeMin = 15 * 60 * 1000;
 
     const refreshAccessToken = async (): Promise<string> => {
-        const response = await axios.get("http://localhost:5000/api/auth/refreshAccessToken");
+        const response = await axios.get("http://localhost:5000/api/auth/refreshAccessToken", { withCredentials: true });
         return response.data.data.accessToken;
     };
 
