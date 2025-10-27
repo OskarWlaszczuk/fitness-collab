@@ -21,8 +21,8 @@ export const registerUser = async ({ userData, modeName }) => {
                 await client.query('INSERT INTO trainers (user_id) VALUES ($1)', [user.id]);
                 break;
 
-            case "client":
-                await client.query('INSERT INTO clients (user_id) VALUES ($1)', [user.id]);
+            case "trainee":
+                await client.query('INSERT INTO trainees (user_id) VALUES ($1)', [user.id]);
                 break;
 
             default:
