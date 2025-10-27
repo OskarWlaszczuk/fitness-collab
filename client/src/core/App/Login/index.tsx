@@ -4,10 +4,19 @@ import { SubmitButton, ErrorText, FormWrapper, Input, SuccessText, Form, ModeBut
 import { Link, useNavigate, type NavigateFunction } from "react-router-dom";
 import axios from "axios";
 
+interface Mode {
+    id: number;
+    name: string;
+}
+
+interface ModesResponse {
+    modes: Mode[];
+}
+
 interface LoginData {
     email: string;
     password: string;
-    modeName: string;
+    modeId: Mode["id"] | undefined;
 }
 
 const loginUser = async (data: LoginData) => {
@@ -46,15 +55,6 @@ const useLoginUser = () => {
     };
 };
 
-interface Mode {
-    id: number;
-    name: string;
-}
-
-interface ModesResponse {
-    modes: Mode[];
-}
-
 const fetchModes = async () => {
     const response = await axios.get<ModesResponse>("http://localhost:5000/api/modes");
     return response.data.modes;
@@ -77,7 +77,7 @@ export const Login = () => {
     const [form, setForm] = useState<LoginData>({
         email: "",
         password: "",
-        modeName: ""
+        modeId: undefined
     });
 
     const {
@@ -130,10 +130,10 @@ export const Login = () => {
             </Form>
 
             <div>
-                {modes?.map(({ name }) => (
+                {modes?.map(({ name, id }) => (
                     <ModeButton
-                        $active={form.modeName === name}
-                        onClick={() => setForm(form => ({ ...form, modeName: name }))}
+                        $active={form.modeId === id}
+                        onClick={() => setForm(form => ({ ...form, modeId: id }))}
                         key={name}
                     >
                         {name}
@@ -141,7 +141,7 @@ export const Login = () => {
                 ))}
             </div>
 
-            <SubmitButton type="submit" disabled={isLoginPending} form="loginForm">
+            <SubmitButton type="submit" disabled={isLoginPending || !form.modeId} form="loginForm">
                 {isLoginPending ? "Logowanie..." : "Zaloguj"}
             </SubmitButton>
         </FormWrapper>

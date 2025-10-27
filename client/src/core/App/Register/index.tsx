@@ -4,13 +4,18 @@ import { SubmitButton, ErrorText, FormWrapper, Input, SuccessText, Form, ModeBut
 import { Link, useNavigate, type NavigateFunction } from "react-router-dom";
 import axios from "axios";
 
+interface Mode {
+  id: number;
+  name: string;
+}
+
 interface RegisterData {
   email: string;
   name: string;
   surname: string;
   nickname: string;
   password: string;
-  modeName: string;
+  modeId: Mode["id"] | undefined;
 }
 
 const registerUser = async (data: RegisterData) => {
@@ -82,7 +87,7 @@ export const Register = () => {
     surname: "",
     nickname: "",
     password: "",
-    modeName: ""
+    modeId: undefined,
   });
 
   const {
@@ -163,10 +168,10 @@ export const Register = () => {
       </Form>
       <div>
         {
-          modes?.map(({ name }) => (
+          modes?.map(({ name, id }) => (
             <ModeButton
-              $active={form.modeName === name}
-              onClick={() => setForm(form => ({ ...form, modeName: name }))}
+              $active={form.modeId === id}
+              onClick={() => setForm(form => ({ ...form, modeId: id }))}
               key={name}
             >
               {name}
@@ -174,7 +179,7 @@ export const Register = () => {
           ))
         }
       </div>
-      <SubmitButton type="submit" disabled={isRegisterUserPending} form="registrationForm">
+      <SubmitButton type="submit" disabled={isRegisterUserPending || !form.modeId} form="registrationForm">
         {isRegisterUserPending ? "Registering..." : "Register"}
       </SubmitButton>
     </FormWrapper>
