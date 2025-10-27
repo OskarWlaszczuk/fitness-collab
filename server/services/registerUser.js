@@ -1,7 +1,7 @@
 import { pool } from "../db.js";
 import { CustomError } from "../utils/CustomError.js";
 
-export const registerUser = async ({ userData, modeName }) => {
+export const registerUser = async ({ userData, mode }) => {
     const client = await pool.connect();
 
     try {
@@ -14,9 +14,10 @@ export const registerUser = async ({ userData, modeName }) => {
             [...userData]
         );
         const user = userRows[0];
+        
+        await client.query("INSERT INTO user_modes (user_id, mode_id) VALUES  ($1, $2)", [user.id, mode.id]);
 
-        switch (modeName) {
-            //dodanie user_id i odpowiedniego mode_id do tabeli user_modes
+        switch (mode.name) {
             case "trainer":
                 await client.query('INSERT INTO trainers (user_id) VALUES ($1)', [user.id]);
                 break;
