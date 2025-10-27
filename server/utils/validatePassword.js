@@ -1,3 +1,6 @@
+import { CustomError } from "../utils/CustomError.js";
+import bcrypt from "bcrypt";
+
 export const validatePassword = async (password, password_hash) => {
     try {
         const isValidPassword = await bcrypt.compare(password, password_hash);
