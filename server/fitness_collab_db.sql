@@ -19,7 +19,7 @@ CREATE TABLE trainers (
     FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
 );
  
-CREATE TABLE clients (
+CREATE TABLE trainees (
     id SERIAL PRIMARY KEY,
     user_id INT UNIQUE NOT NULL,
     created_at TIMESTAMP DEFAULT NOW(), 
