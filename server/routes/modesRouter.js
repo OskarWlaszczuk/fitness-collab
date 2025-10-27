@@ -1,5 +1,5 @@
 import express from "express";
-import { getModes } from "../controllers/modesController";
+import { getModes } from "../controllers/modesController.js";
 
 const modesRouter = express.Router();
 
