@@ -2,18 +2,19 @@ import styled from "styled-components";
 
 export const FormWrapper = styled.div`
   display: flex;
+  flex-direction: column;
   justify-content: center;
   align-items: center;
   height: 100vh;
-  background-color: ${({ theme }) => theme.colors.whisper || "#f5f6fa"};
+  background-color: ${({ theme }) => theme.colors.white};
+    border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  width: 50%;
+  margin: auto;
 `;
 
 export const Form = styled.form`
-  background-color: white;
   padding: 2rem;
-  border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  width: 320px;
   display: flex;
   flex-direction: column;
   gap: 1rem;
@@ -32,7 +33,26 @@ export const Input = styled.input`
   }
 `;
 
-export const Button = styled.button`
+interface ModeButtonProps {
+  $active?: boolean;
+}
+
+export const ModeButton = styled.button<ModeButtonProps>`
+  padding: 0.75rem 1rem;
+  border: none;
+  border-radius: 8px;
+  background-color: ${({ $active, theme }) => ($active ? theme.colors.scienceBlue : theme.colors.pattensBlue)};
+  color: ${({ $active, theme }) => ($active ? theme.colors.white : theme.colors.black)};
+  font-weight: bold;
+  cursor: pointer;
+  transition: background 0.2s ease-in-out;
+
+  &:hover {
+filter: brightness(102%);
+}
+`;
+
+export const SubmitButton = styled.button`
   padding: 0.75rem 1rem;
   border: none;
   border-radius: 8px;
