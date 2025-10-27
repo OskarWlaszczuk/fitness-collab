@@ -3,6 +3,7 @@ import { Home } from "../../features/home";
 import { Layout } from "./Layout";
 import { Register } from "./Register";
 import { useAccessTokenQuery } from "../../common/hooks/useAccessTokenQuery";
+import { Login } from "./Login";
 
 export const App = () => {
   const { accessToken } = useAccessTokenQuery();
@@ -19,9 +20,9 @@ export const App = () => {
         <Route path={getRouteUrl("home")} element={<Home />} />
         <Route path="*" element={<Navigate to={getRouteUrl("home")} replace />} />
       </Route>
-      {/* <Route path="/auth/login" element={<Login />} /> */}
+      <Route path={getAuthRouteUrl("login")} element={<Login />} />
       <Route path={getAuthRouteUrl("register")} element={<Register />} />
-      <Route path={`${baseAuthUrl}/*`} element={<Navigate to={getAuthRouteUrl("register")} replace />} />
+      <Route path={`${baseAuthUrl}/*`} element={<Navigate to={getAuthRouteUrl("login")} replace />} />
     </Routes>
   );
 };
