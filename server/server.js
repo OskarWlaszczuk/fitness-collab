@@ -17,7 +17,7 @@ const __dirname = dirname(__filename);
 
 const app = express();
 const corsOptions = {
-    origin: ["http://localhost:5137"],
+    origin: ["http://localhost:5173"],
 };
 
 app.use(cors(corsOptions));
