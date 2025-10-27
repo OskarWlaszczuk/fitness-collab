@@ -9,19 +9,20 @@ import { startUserTokenSession } from "../services/startUserTokenSession.js";
 import { generateAccessToken } from "../utils/generateAccessToken.js";
 import { endUserTokenSession } from "../services/endUserTokenSession.js";
 import { validatePassword } from "../utils/validatePassword.js";
+import { pool } from "../db.js";
 
 config();
 
 export const refreshAccessToken = asyncErrorHandler(async (request, response) => {
     console.log("refreshing token...");
-    const { userId, roleName } = request.tokenPayload;
+    const { userId, modeName } = request.tokenPayload;
 
-    const tokenPayload = { userId, roleName };
+    const tokenPayload = { userId, modeName };
 
     const accessToken = generateAccessToken(tokenPayload);
 
     console.log(`Access token odświeżony: ${accessToken}`);
-    response.status(200).json({ accessToken });
+    response.status(200).json({ data: { accessToken } });
 });
 
 export const logout = asyncErrorHandler(async (request, response) => {
@@ -32,8 +33,8 @@ export const logout = asyncErrorHandler(async (request, response) => {
 
     response.clearCookie(process.env.COOKIE_NAME, {
         httpOnly: true,
-        secure: false,
-        sameSite: "lax",
+        sameSite: "none",
+        secure: true,
         path: process.env.COOKIE_PATH,
     });
 
@@ -43,20 +44,20 @@ export const logout = asyncErrorHandler(async (request, response) => {
 });
 
 export const register = asyncErrorHandler(async (request, response, next) => {
-    const { email, name, surname, nickname, password, roleName } = request.body;
+    const { email, name, surname, nickname, password, modeId } = request.body;
 
     const {
-        isEntityAvailable: isRoleAvailable,
-        entity: role
+        isEntityAvailable: isModeAvailable,
+        entity: mode
     } = await findEntityByColumnField({
-        entitiesTable: "roles",
-        columnName: "name",
-        columnField: roleName
+        entitiesTable: "modes",
+        columnName: "id",
+        columnField: modeId
     });
 
-    if (!isRoleAvailable) {
-        const error = new CustomError("invalid role", 400);
-        next(error);
+    if (!isModeAvailable) {
+        const error = new CustomError("invalid mode", 400);
+        return next(error);
     }
 
     const {
@@ -69,7 +70,7 @@ export const register = asyncErrorHandler(async (request, response, next) => {
 
     if (isEmailRegistered) {
         const error = new CustomError(`email ${email} already registered`, 409);
-        next(error);
+        return next(error);
     }
 
     const {
@@ -82,17 +83,17 @@ export const register = asyncErrorHandler(async (request, response, next) => {
 
     if (isNicknameRegistered) {
         const error = new CustomError(`Nickname ${nickname} already registered`, 409);
-        next(error);
+        return next(error);
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
     const user = await registerUser({
         userData: [email, name, surname, nickname, hashedPassword],
-        roleName,
+        mode,
     });
 
-    const { accessToken, refreshToken, hashedRefreshToken } = await generateJWTs({ roleName, userId: user.id });
+    const { accessToken, refreshToken, hashedRefreshToken } = await generateJWTs({ modeId, userId: user.id });
 
     await startUserTokenSession({ hashedRefreshToken, userId: user.id })
 
@@ -101,8 +102,8 @@ export const register = asyncErrorHandler(async (request, response, next) => {
         refreshToken,
         {
             httpOnly: true,
-            secure: false,
-            sameSite: "lax",
+            sameSite: "none",
+            secure: true,
             path: process.env.COOKIE_PATH,
             maxAge: 7 * 24 * 3600 * 1000,
         }
@@ -111,27 +112,29 @@ export const register = asyncErrorHandler(async (request, response, next) => {
     return response
         .status(200)
         .json({
-            accessToken,
-            user,
-            role
+            data: {
+                accessToken,
+                user,
+                mode
+            }
         });
 });
 
 export const login = asyncErrorHandler(async (request, response, next) => {
-    const { email, password, roleName } = request.body;
+    const { email, password, modeId } = request.body;
 
     const {
-        isEntityAvailable: isRoleAvailable,
-        entity: role
+        isEntityAvailable: isModeAvailable,
+        entity: mode
     } = await findEntityByColumnField({
-        entitiesTable: "roles",
-        columnName: "name",
-        columnField: roleName
+        entitiesTable: "modes",
+        columnName: "id",
+        columnField: modeId
     });
 
-    if (!isRoleAvailable) {
-        const error = new CustomError("invalid role", 400);
-        next(error);
+    if (!isModeAvailable) {
+        const error = new CustomError("invalid mode", 400);
+        return next(error);
     }
 
     const {
@@ -145,7 +148,14 @@ export const login = asyncErrorHandler(async (request, response, next) => {
 
     if (!isEmailRegistered) {
         const error = new CustomError(`email ${email} does not registered`, 409);
-        next(error);
+        return next(error);
+    }
+
+    const { rows: userModes } = await pool.query("SELECT * FROM user_modes WHERE user_id = $1 AND mode_id = $2 ", [user.id, modeId])
+
+    if (!userModes.length) {
+        const error = new CustomError(`user ${user.name} is not registered as ${mode.name}`, 409);
+        return next(error);
     }
 
     const { password_hash, refresh_token_hash, ...responseUserData } = user;
@@ -153,10 +163,12 @@ export const login = asyncErrorHandler(async (request, response, next) => {
     const isValidPassword = await validatePassword(password, password_hash);
     if (!isValidPassword) {
         const error = new CustomError("invalid password", 409);
-        next(error);
+        return next(error);
     }
 
-    const { accessToken, refreshToken, hashedRefreshToken } = await generateJWTs({ userId: user.id, roleName });
+    const { accessToken, refreshToken, hashedRefreshToken } = await generateJWTs({ userId: user.id, modeId });
+    console.log(accessToken, refreshToken, hashedRefreshToken);
+
     await startUserTokenSession({ hashedRefreshToken, userId: user.id })
 
     response.cookie(
@@ -164,20 +176,20 @@ export const login = asyncErrorHandler(async (request, response, next) => {
         refreshToken,
         {
             httpOnly: true,
-            secure: false,
-            sameSite: "lax",
+            sameSite: "none",
+            secure: true,
             path: process.env.COOKIE_PATH,
             maxAge: 7 * 24 * 3600 * 1000,
         }
     );
 
-    response
+    return response
         .status(201)
         .json({
             success: true,
             data: {
                 user: responseUserData,
-                role,
+                mode,
                 accessToken,
             }
         });
