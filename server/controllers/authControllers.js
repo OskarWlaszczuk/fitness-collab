@@ -93,7 +93,12 @@ export const register = asyncErrorHandler(async (request, response, next) => {
         mode,
     });
 
-    const { accessToken, refreshToken, hashedRefreshToken } = await generateJWTs({ modeId, userId: user.id });
+    const tokenPayload = {
+        userId: user.id,
+        modeId: modeId,
+    };
+
+    const { accessToken, refreshToken, hashedRefreshToken } = await generateJWTs(tokenPayload);
 
     await startUserTokenSession({ hashedRefreshToken, userId: user.id })
 
@@ -166,7 +171,12 @@ export const login = asyncErrorHandler(async (request, response, next) => {
         return next(error);
     }
 
-    const { accessToken, refreshToken, hashedRefreshToken } = await generateJWTs({ userId: user.id, modeId });
+    const tokenPayload = {
+        userId: user.id,
+        modeId: modeId,
+    };
+
+    const { accessToken, refreshToken, hashedRefreshToken } = await generateJWTs(tokenPayload);
     console.log(accessToken, refreshToken, hashedRefreshToken);
 
     await startUserTokenSession({ hashedRefreshToken, userId: user.id })

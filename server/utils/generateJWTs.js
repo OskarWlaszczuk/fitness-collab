@@ -6,13 +6,8 @@ import { CustomError } from "./CustomError.js";
 
 config();
 
-export const generateJWTs = async ({ userId, roleName }) => {
+export const generateJWTs = async (tokenPayload) => {
     try {
-        const tokenPayload = {
-            userId: userId,
-            roleName,
-        };
-
         const accessToken = generateAccessToken(tokenPayload);
 
         const refreshToken = jwt.sign(
