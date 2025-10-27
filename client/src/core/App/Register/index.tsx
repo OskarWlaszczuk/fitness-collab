@@ -15,7 +15,7 @@ interface RegisterData {
 
 const registerUser = async (data: RegisterData) => {
   try {
-    const response = await axios.post("http://localhost:5000/api/auth/register", data);
+    const response = await axios.post("http://localhost:5000/api/auth/register", data, { withCredentials: true });
     return response.data.data;
   } catch (error) {
     console.log(error);
@@ -91,7 +91,7 @@ export const Register = () => {
     isSuccess: isRegisterUserSuccess,
     error: registerUserError,
     isError: isRegisterUserError,
-  } = useRegisterUser(setForm);
+  } = useRegisterUser();
 
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement>
@@ -104,7 +104,7 @@ export const Register = () => {
     registerUser(form);
   };
 
-  const { modesStatus, isModesPaused, modes } = useGetModes();
+  const { modes } = useGetModes();
   console.log(form);
 
   return (
@@ -153,7 +153,7 @@ export const Register = () => {
 
 
 
-        <p>Login <Link to="/login">here</Link></p>
+        <p>Login <Link to="/fitness-collab/auth/login">here</Link></p>
         {(isRegisterUserError && registerUserError) && (
           <ErrorText>{registerUserError.message}</ErrorText>
         )}
