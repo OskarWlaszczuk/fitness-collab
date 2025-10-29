@@ -1,8 +1,8 @@
 import { NavLink, useNavigate } from "react-router-dom"
 import { StyledTopPanel } from "./styled"
-import axios from "axios";
 import { useQueryClient } from "@tanstack/react-query";
 import { useAccessTokenQuery } from "../../../../common/hooks/useAccessTokenQuery";
+import { authApi } from "../../../../apiClients";
 
 
 export const TopPanel = () => {
@@ -14,16 +14,30 @@ export const TopPanel = () => {
     const logout = async () => {
         //użyć useMutation
         try {
-            await axios.delete("http://localhost:5000/api/auth/logout", { withCredentials: true });
+            await authApi.delete("/logout");
             //czyszczenie cacha i przenoszenie do login wewnątrz funkcji onSuccess
+            const accessTokenCache = queryClient.getQueryData(['accessToken']);
+            const profileCache = queryClient.getQueryData(['user']);
+            console.log("Cache po wylogowaniu, przed usunięciem:", accessTokenCache, profileCache);
+
             queryClient.setQueryData(["accessToken"], null);
+            queryClient.setQueryData(["user", "profile"], null);
+
             queryClient.removeQueries({ queryKey: ["accessToken"] });
-            navigate("/fitness-collab/auth/login");
+            queryClient.removeQueries({ queryKey: ["user"] });
+
+
+            console.log("Cache po wylogowaniu:", accessTokenCache, profileCache);
+
+            // navigate("/fitness-collab/auth/login");
 
         } catch (error) {
             console.log(error);
         }
     };
+    const accessTokenCache = queryClient.getQueryData(['accessToken']);
+    const profileCache = queryClient.getQueryData(['user']);
+    console.log(accessTokenCache, profileCache);
 
     return (
         <StyledTopPanel>
@@ -35,7 +49,11 @@ export const TopPanel = () => {
                     </>
                 )
             }
-            <button onClick={logout}>logout</button>
+            {
+                accessToken && (
+                    <button onClick={logout}>logout</button>
+                )
+            }
         </StyledTopPanel>
     );
 };
