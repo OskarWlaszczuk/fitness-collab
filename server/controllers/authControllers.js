@@ -95,7 +95,7 @@ export const register = asyncErrorHandler(async (request, response, next) => {
 
     const tokenPayload = {
         userId: user.id,
-        modeId: modeId,
+        modeName: mode.name,
     };
 
     const { accessToken, refreshToken, hashedRefreshToken } = await generateJWTs(tokenPayload);
@@ -173,7 +173,7 @@ export const login = asyncErrorHandler(async (request, response, next) => {
 
     const tokenPayload = {
         userId: user.id,
-        modeId: modeId,
+        modeName: mode.name,
     };
 
     const { accessToken, refreshToken, hashedRefreshToken } = await generateJWTs(tokenPayload);
