@@ -9,7 +9,7 @@ import authRouter from "./routes/authRouter.js";
 import { globalErrorHandler } from "./controllers/errorControllers.js";
 import { CustomError } from "./utils/CustomError.js";
 import modesRouter from "./routes/modesRouter.js";
-import usersRouter from "./routes/usersRouter.js";
+import userRouter from "./routes/userRouter.js";
 config({ path: `${process.cwd()}/.env` });
 
 const __filename = fileURLToPath(import.meta.url);
@@ -29,7 +29,7 @@ app.use(express.static(path.join(__dirname, "../client/public")));
 
 app.use("/api/auth", authRouter);
 app.use("/api/modes", modesRouter);
-app.use("/api/user", usersRouter);
+app.use("/api/user", userRouter);
 
 const fallbackApiHandler = (request, response, next) => {
     const error = new CustomError(`Can't find ${request.originalUrl} on the server`, 404);
