@@ -1,9 +1,7 @@
 import { config } from "dotenv";
 import { verifyJwt } from "../utils/verifyJwt.js";
-import { CustomError } from "../utils/CustomError.js";
 import { asyncErrorHandler } from "../utils/asyncErrorHandler.js";
 config();
-
 
 export const validateAccessTokenSignature = asyncErrorHandler(async (request, response, next) => {
     const accessToken = request.accessToken;
