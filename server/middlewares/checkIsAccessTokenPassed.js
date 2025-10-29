@@ -1,4 +1,4 @@
-import { CustomError } from "../utils/CustomError";
+import { CustomError } from "../utils/CustomError.js";
 
 export const checkIsAccessTokenPassed = async (request, response, next) => {
     const authHeader = request.headers["authorization"];
