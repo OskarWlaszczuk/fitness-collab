@@ -1,20 +1,15 @@
 import { config } from "dotenv";
 import { verifyJwt } from "../utils/verifyJwt.js";
 import { CustomError } from "../utils/CustomError.js";
+import { asyncErrorHandler } from "../utils/asyncErrorHandler.js";
 config();
 
-export const validateRefreshTokenSignature = async (request, response, next) => {
+export const validateRefreshTokenSignature = asyncErrorHandler(async (request, response, next) => {
     console.log("cheching is rt secret valid...");
 
-    const refreshToken = request.cookies?.refreshToken;
+    const refreshToken = request.refreshToken;
+    const tokenPayload = await verifyJwt(refreshToken, process.env.REFRESH_TOKEN_SECRET);
 
-    try {
-        const tokenPayload = await verifyJwt(refreshToken, process.env.REFRESH_TOKEN_SECRET);
-
-        request.tokenPayload = tokenPayload;
-        return next();
-    } catch {
-        const error = new CustomError("error verifying refresh token secret", 401);
-        return next(error)
-    }
-}
+    request.tokenPayload = tokenPayload;
+    return next();
+});
