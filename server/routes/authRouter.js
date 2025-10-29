@@ -3,7 +3,7 @@ import { login, logout, refreshAccessToken, register } from "../controllers/auth
 import { checkIsRefreshTokenPassed } from "../middlewares/checkIsRefreshTokenPassed.js";
 import { validateRefreshTokenSignature } from "../middlewares/validateRefreshTokenSignature.js";
 import { checkUserExists } from "../middlewares/checkUserExists.js";
-import { checkIsRefreshTokenIntergrated } from "../middlewares/checkIsRefreshTokenIntergrated.js";
+import { checkIsRefreshTokenIntegrated } from "../middlewares/checkIsRefreshTokenIntegrated.js";
 import { checkIsTokenSessionActive } from "../middlewares/checkIsTokenSessionActive.js";
 
 const authRouter = express.Router();
@@ -15,7 +15,7 @@ authRouter.route("/logout").delete(
     validateRefreshTokenSignature,
     checkUserExists,
     checkIsTokenSessionActive,
-    checkIsRefreshTokenIntergrated,
+    checkIsRefreshTokenIntegrated,
     logout
 );
 authRouter.route("/refreshAccessToken").get(
@@ -23,7 +23,7 @@ authRouter.route("/refreshAccessToken").get(
     validateRefreshTokenSignature,
     checkUserExists,
     checkIsTokenSessionActive,
-    checkIsRefreshTokenIntergrated,
+    checkIsRefreshTokenIntegrated,
     refreshAccessToken
 );
 export default authRouter;

@@ -2,7 +2,7 @@ import { CustomError } from "../utils/CustomError.js";
 import { asyncErrorHandler } from "../utils/asyncErrorHandler.js";
 import { compareRefreshToken } from "../utils/compareRefreshToken.js";
 
-export const checkIsRefreshTokenIntergrated = asyncErrorHandler(async (request, response, next) => {
+export const checkIsRefreshTokenIntegrated = asyncErrorHandler(async (request, response, next) => {
     console.log("checking is rt session fresh...");
 
     const refreshToken = request.refreshToken;
