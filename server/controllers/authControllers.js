@@ -22,7 +22,7 @@ export const refreshAccessToken = asyncErrorHandler(async (request, response) =>
     const accessToken = generateAccessToken(tokenPayload);
 
     console.log(`Access token odświeżony: ${accessToken}`);
-    response.status(200).json({ data: { accessToken } });
+    response.status(200).json({ accessToken });
 });
 
 export const logout = asyncErrorHandler(async (request, response) => {
