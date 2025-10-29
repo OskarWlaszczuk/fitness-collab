@@ -1,27 +1,24 @@
 import { findEntityByColumnField } from "../services/findEntityByColumnField.js";
+import { asyncErrorHandler } from "../utils/asyncErrorHandler.js";
 import { CustomError } from "../utils/CustomError.js";
 
-export const checkUserExists = async (request, response, next) => {
-    try {
-        console.log("Checking is user exists...");
+export const checkUserExists = asyncErrorHandler(async (request, response, next) => {
+    console.log("Checking is user exists...");
 
-        const tokenPayload = request.tokenPayload;
+    const tokenPayload = request.tokenPayload;
 
-        const { entity: user, isEntityAvailable: isUserExists } = await findEntityByColumnField({
-            entitiesTable: "users",
-            columnName: "id",
-            columnField: tokenPayload.userId
-        });
+    const { entity: user, isEntityAvailable: isUserExists } = await findEntityByColumnField({
+        entitiesTable: "users",
+        columnName: "id",
+        columnField: tokenPayload.userId
+    });
 
-        if (!isUserExists) {
-            const error = new CustomError("user does not found", 404);
-            return next(error);
-        }
-
-        request.tokenPayload = tokenPayload;
-        request.user = user;
-        return next();
-    } catch (error) {
+    if (!isUserExists) {
+        const error = new CustomError("user does not found", 404);
         return next(error);
     }
-};
+
+    request.tokenPayload = tokenPayload;
+    request.user = user;
+    return next();
+});
