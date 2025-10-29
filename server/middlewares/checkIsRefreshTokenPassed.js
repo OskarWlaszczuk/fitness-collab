@@ -10,5 +10,6 @@ export const checkIsRefreshTokenPassed = (request, response, next) => {
         return next(error);
     }
 
+    request.refreshToken = refreshToken;
     return next();
 };
