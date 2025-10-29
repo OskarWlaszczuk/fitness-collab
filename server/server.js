@@ -9,7 +9,8 @@ import authRouter from "./routes/authRouter.js";
 import { globalErrorHandler } from "./controllers/errorControllers.js";
 import { CustomError } from "./utils/CustomError.js";
 import modesRouter from "./routes/modesRouter.js";
-config();
+import usersRouter from "./routes/usersRouter.js";
+config({ path: `${process.cwd()}/.env` });
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -27,7 +28,8 @@ app.use(express.json());
 app.use(express.static(path.join(__dirname, "../client/public")));
 
 app.use("/api/auth", authRouter);
-app.use("/api/modes", modesRouter)
+app.use("/api/modes", modesRouter);
+app.use("/api/user", usersRouter);
 
 const fallbackApiHandler = (request, response, next) => {
     const error = new CustomError(`Can't find ${request.originalUrl} on the server`, 404);
