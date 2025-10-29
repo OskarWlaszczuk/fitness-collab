@@ -18,6 +18,7 @@ export const checkUserExists = async (request, response, next) => {
             return next(error);
         }
 
+        request.tokenPayload = tokenPayload;
         request.user = user;
         return next();
     } catch (error) {
