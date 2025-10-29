@@ -1,12 +1,12 @@
 import { useQuery } from "@tanstack/react-query";
-import axios from "axios";
+import { authApi } from "../../apiClients";
 
 export const useAccessTokenQuery = () => {
     const refreshTimeMin = 15 * 60 * 1000;
-
+    //jak obsługiwać błędu queryFn?
     const refreshAccessToken = async (): Promise<string> => {
-        const response = await axios.get("http://localhost:5000/api/auth/refreshAccessToken", { withCredentials: true });
-        return response.data.data.accessToken;
+        const response = await authApi.get("/refreshAccessToken");
+        return response.data.accessToken;
     };
 
     const { data: accessToken, status, isPaused, error, refetch: refetchAccessToken } = useQuery<string>({
