@@ -1,5 +1,4 @@
 import { config } from "dotenv";
-import bcrypt from "bcrypt";
 import { CustomError } from "../utils/CustomError.js";
 import { generateJWTs } from "../utils/generateJWTs.js";
 import { asyncErrorHandler } from "../utils/asyncErrorHandler.js"
@@ -9,19 +8,18 @@ import { startUserTokenSession } from "../services/startUserTokenSession.js";
 import { generateAccessToken } from "../utils/generateAccessToken.js";
 import { endUserTokenSession } from "../services/endUserTokenSession.js";
 import { validatePassword } from "../utils/validatePassword.js";
-import { pool } from "../db.js";
+import { getUserModes } from "../services/getUserModes.js";
+import { hashUserPassword } from "../utils/hashUserPassword.js";
 
 config();
 
 export const refreshAccessToken = asyncErrorHandler(async (request, response) => {
     console.log("refreshing token...");
-    const { userId, modeName } = request.tokenPayload;
+    const { userId, modeId } = request.tokenPayload;
 
-    const tokenPayload = { userId, modeName };
-
+    const tokenPayload = { userId, modeId };
     const accessToken = generateAccessToken(tokenPayload);
 
-    console.log(`Access token odświeżony: ${accessToken}`);
     response.status(200).json({ accessToken });
 });
 
@@ -86,7 +84,7 @@ export const register = asyncErrorHandler(async (request, response, next) => {
         return next(error);
     }
 
-    const hashedPassword = await bcrypt.hash(password, 10);
+    const hashedPassword = await hashUserPassword(password);
 
     const user = await registerUser({
         userData: [email, name, surname, nickname, hashedPassword],
@@ -95,7 +93,7 @@ export const register = asyncErrorHandler(async (request, response, next) => {
 
     const tokenPayload = {
         userId: user.id,
-        modeName: mode.name,
+        modeId: mode.id,
     };
 
     const { accessToken, refreshToken, hashedRefreshToken } = await generateJWTs(tokenPayload);
@@ -151,15 +149,16 @@ export const login = asyncErrorHandler(async (request, response, next) => {
         columnField: email
     });
 
+
     if (!isEmailRegistered) {
         const error = new CustomError(`email ${email} does not registered`, 409);
         return next(error);
     }
 
-    const { rows: userModes } = await pool.query("SELECT * FROM user_modes WHERE user_id = $1 AND mode_id = $2 ", [user.id, modeId])
+    const { isUserRegisteredInMode } = await getUserModes(user.id, modeId);
 
-    if (!userModes.length) {
-        const error = new CustomError(`user ${user.name} is not registered as ${mode.name}`, 409);
+    if (!isUserRegisteredInMode) {
+        const error = new CustomError("user is not register on this mode", 403);
         return next(error);
     }
 
@@ -173,7 +172,7 @@ export const login = asyncErrorHandler(async (request, response, next) => {
 
     const tokenPayload = {
         userId: user.id,
-        modeName: mode.name,
+        modeId: mode.id,
     };
 
     const { accessToken, refreshToken, hashedRefreshToken } = await generateJWTs(tokenPayload);
