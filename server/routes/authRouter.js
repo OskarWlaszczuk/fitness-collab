@@ -3,7 +3,7 @@ import { login, logout, refreshAccessToken, register } from "../controllers/auth
 import { checkIsRefreshTokenPassed } from "../middlewares/checkIsRefreshTokenPassed.js";
 import { validateRefreshTokenSignature } from "../middlewares/validateRefreshTokenSignature.js";
 import { checkUserExists } from "../middlewares/checkUserExists.js";
-import { checkIsRefreshTokenIntegrated } from "../middlewares/checkIsRefreshTokenIntegrated.js";
+import { checkIsRefreshTokenIntegrated } from "../middlewares/checkIsRefreshTokenIntergrated.js";
 import { checkIsTokenSessionActive } from "../middlewares/checkIsTokenSessionActive.js";
 
 const authRouter = express.Router();
