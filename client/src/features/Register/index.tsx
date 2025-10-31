@@ -28,7 +28,7 @@ const registerUser = async (data: RegisterData) => {
 };
 
 const onRegisterSuccess = (navigate: NavigateFunction) => {
-  navigate("/fitness-collab/home")
+  navigate("/home", { replace: true })
 };
 
 const onRegisterError = (error: unknown) => {
@@ -158,7 +158,7 @@ export const Register = () => {
 
 
 
-        <p>Login <Link to="/fitness-collab/auth/login">here</Link></p>
+        <p>Login <Link to="/login">here</Link></p>
         {(isRegisterUserError && registerUserError) && (
           <ErrorText>{registerUserError.message}</ErrorText>
         )}

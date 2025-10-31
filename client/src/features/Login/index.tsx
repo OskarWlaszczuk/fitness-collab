@@ -4,19 +4,19 @@ import { SubmitButton, ErrorText, FormWrapper, Input, SuccessText, Form, ModeBut
 import { Link, useNavigate, type NavigateFunction } from "react-router-dom";
 import axios from "axios";
 
-interface Mode {
+export interface UserMode {
     id: number;
     name: string;
 }
 
 interface ModesResponse {
-    modes: Mode[];
+    modes: UserMode[];
 }
 
 interface LoginData {
     email: string;
     password: string;
-    modeId: Mode["id"] | undefined;
+    modeId: UserMode["id"] | undefined;
 }
 
 const loginUser = async (data: LoginData) => {
@@ -30,7 +30,7 @@ const loginUser = async (data: LoginData) => {
 };
 
 const onLoginSuccess = (navigate: NavigateFunction) => {
-    navigate("/fitness-collab/home");
+    navigate("/home", {replace: true});
 };
 
 const onLoginError = (error: unknown) => {
@@ -65,7 +65,7 @@ const useGetModes = () => {
         status: modesStatus,
         data: modes,
         isPaused: isModesPaused
-    } = useQuery<Mode[]>({
+    } = useQuery<UserMode[]>({
         queryKey: ["modes"],
         queryFn: fetchModes,
     });
@@ -119,7 +119,7 @@ export const Login = () => {
                     required
                 />
 
-                <p>Don't have an account? <Link to="/fitness-collab/auth/register">Register here</Link></p>
+                <p>Don't have an account? <Link to="/register">Register here</Link></p>
 
                 {(isLoginError && loginError) && (
                     <ErrorText>Nie udało się zalogować. Sprawdź dane.</ErrorText>
