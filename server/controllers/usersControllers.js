@@ -1,6 +1,18 @@
 import { pool } from "../db.js";
 import { asyncErrorHandler } from "../utils/asyncErrorHandler.js";
 
+export const getUserActiveMode = asyncErrorHandler(async (request, response, next) => {
+    const { tokenPayload } = request;
+    //service
+    const { rows: modeRows } = await pool.query(
+        "SELECT id, name FROM modes WHERE id = $1",
+        [tokenPayload.modeId]
+    );
+
+    const mode = modeRows[0];
+    return response.status(200).json({ mode });
+});
+
 export const getTrainerProfil = asyncErrorHandler(async (request, response, next) => {
     const { tokenPayload } = request;
 
