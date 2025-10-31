@@ -1,9 +1,11 @@
 import { useQuery } from "@tanstack/react-query";
-import { userApi } from "../../apiClients";
 import { useAccessTokenQuery } from "../../common/hooks/useAccessTokenQuery";
+import { useUserActiveModeQuery } from "../../common/hooks/useUserActiveModeQuery";
+import { userApi } from "../../apiClients";
 
 export const Home = () => {
     const { accessToken } = useAccessTokenQuery();
+    const { activeMode } = useUserActiveModeQuery();
 
     const getUser = async () => {
         try {
@@ -25,15 +27,10 @@ export const Home = () => {
         refetchOnWindowFocus: false,
     });
 
-    console.log(userProfile);
 
     return (
         <div style={{ color: "black" }}>
-            {
-                accessToken ?
-                    <p>Welcome {userProfile?.user.nickname}</p> :
-                    <h1>Home page</h1>
-            }
+            hello {activeMode?.mode.name} {userProfile?.user.name}
         </div>
     );
 };
