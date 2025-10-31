@@ -18,8 +18,8 @@ export const App = () => {
 
   return (
     <BrowserRouter basename="/fitness-collab" >
-      <Route path="/" element={<Navigate to="/fitness-collab/home" replace />} />
       <Routes >
+        <Route path="/" element={<Navigate to="/home" replace />} />
         <Route element={<AuthRoute />}>
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
