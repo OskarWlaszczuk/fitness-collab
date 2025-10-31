@@ -13,7 +13,7 @@ export const useAccessTokenQuery = () => {
         queryKey: ["accessToken"],
         queryFn: refreshAccessToken,
         staleTime: refreshTimeMin,
-        cacheTime: refreshTimeMin,
+        gcTime: refreshTimeMin,
         refetchInterval: refreshTimeMin,
         retry: 1,
     });
