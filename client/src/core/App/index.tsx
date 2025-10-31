@@ -1,65 +1,91 @@
-import { Navigate, Route, Routes } from "react-router-dom"
-import { Home } from "../../features/home";
+import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom"
+import { Home } from "../../features/Home";
 import { Layout } from "./Layout";
-import { Register } from "./Register";
-import { useAccessTokenQuery } from "../../common/hooks/useAccessTokenQuery";
-import { Login } from "./Login";
-import { useLayoutEffect } from "react";
-import { userApi } from "../../apiClients";
+import { Register } from "../../features/Register";
+import { Login } from "../../features/Login";
+import { AuthRoute } from "./routes/AuthRoute";
+import { ProtectedRoute } from "./routes/ProtectedRoute";
+import { Chats } from "../../features/Chats";
+import { ModeProtectedRoute } from "./routes/ModeProtectedRoute";
+import { Workouts } from "../../features/Workouts";
+import { WorkoutCreator } from "../../features/WorkoutCreator";
+import { Unauthorized } from "../../features/Unauthorized";
+import { Missing } from "../../features/Missing";
+import { useUserApiInterceptors } from "./useUserApiInterceptors";
 
 export const App = () => {
-  const { accessToken, refetchAccessToken } = useAccessTokenQuery();
-
-  useLayoutEffect(() => {
-    userApi.interceptors.request.use((config) => {
-      if (accessToken) {
-        console.log("Adding access token to user api request", accessToken);
-        
-        config.headers.Authorization = `Bearer ${accessToken}`;
-      }
-
-      return config;
-    });
-
-    userApi.interceptors.response.use(
-      response => response,
-      async (error) => {
-        try {
-          const originalRequest = error.config;
-
-          if (
-            (error.status === 403 || error.status === 401) && !originalRequest._retry
-          ) {
-            originalRequest._retry = true;
-            await refetchAccessToken();
-          }
-          //po co odrzucenie obietnicy tutaj?
-          return Promise.reject(error);
-        } catch (error) {
-          console.log(error);
-        }
-      }
-    );
-  }, [accessToken, refetchAccessToken]);
-
-  const baseUrl = "/fitness-collab";
-  const baseAuthUrl = `${baseUrl}/auth`;
-
-  const getRouteUrl = (route: string) => `${baseUrl}/${route}`;
-  const getAuthRouteUrl = (authRoute: string) => `${baseAuthUrl}/${authRoute}`;
+  useUserApiInterceptors();
 
   return (
-    <Routes>
-      <Route path="/" element={<Layout />}>
-        <Route path={getRouteUrl("home")} element={<Home />} />
-        <Route path="*" element={<Navigate to={getRouteUrl("home")} replace />} />
-      </Route>
-      {
-        // jeżeli jest route /auth to nie pobiera access tokenu!
-      }
-      <Route path={getAuthRouteUrl("login")} element={<Login />} />
-      <Route path={getAuthRouteUrl("register")} element={<Register />} />
-      <Route path={`${baseAuthUrl}/*`} element={<Navigate to={getAuthRouteUrl("login")} replace />} />
-    </Routes>
+    <BrowserRouter basename="/fitness-collab" >
+      <Route path="/" element={<Navigate to="/fitness-collab/home" replace />} />
+      <Routes >
+        <Route element={<AuthRoute />}>
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+        </Route>
+
+        <Route element={<Layout />}>
+          <Route element={<ProtectedRoute />}>
+            <Route path="/home" element={<Home />} />
+            <Route path="/chats" element={<Chats />} />
+            <Route path="/profile" element={<>Profile</>} />
+
+            <Route element={<ModeProtectedRoute allowedModes={[1]} />}>
+              <Route path="/workouts" element={<Workouts />} />
+            </Route>
+
+            <Route element={<ModeProtectedRoute allowedModes={[2]} />}>
+              <Route path="/workout-creator" element={<WorkoutCreator />} />
+            </Route>
+
+            <Route path="/unauthorized" element={<Unauthorized />} />
+          </Route>
+        </Route>
+        <Route path="*" element={<Missing />} />
+      </Routes>
+    </BrowserRouter>
   );
 };
+
+
+
+
+
+
+
+// return (
+//   <Routes>
+//     <Route path="/auth">
+//       <Route path="/auth/login" element={<Login />} />
+//       <Route path="/auth/register" element={<Register />} />
+//     </Route>
+
+//     <Route path="/" element={<Layout />} >
+//       {
+//         //ścieżki login i register nie dostępne jeżeli !!accessToken
+//       }
+//       {/* <Route path="/login" element={<Login />} />
+//       <Route path="/register" element={<Register />} /> */}
+//       <Route path="/unathorized" element={<Unathorized />} />
+
+//       <Route element={<RequireAuth allowedModes={[1, 2]} />}>
+//         <Route path="/home" element={<Home />} />
+//         <Route path="/chats" element={<Chats />} />
+//         <Route path="/profile" element={<>Profile</>} />
+//       </Route>
+
+//       <Route element={<RequireAuth allowedModes={[1]} />}>
+//         <Route path="/workouts" element={<>workouts</>} />
+//         <Route path="/trainers" element={<>trainers</>} />
+//         <Route path="/excersise" element={<>excersise</>} />
+//       </Route>
+
+//       <Route element={<RequireAuth allowedModes={[2]} />}>
+//         <Route path="/workout-creator" element={<>workout creator</>} />
+//       </Route>
+
+//       <Route path="*" element={<Missing />} />
+//     </Route>
+//   </Routes>
+// );
