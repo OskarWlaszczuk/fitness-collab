@@ -11,7 +11,7 @@ userRouter.get(
     "/trainer/profile",
     checkIsAccessTokenPassed,
     validateAccessTokenSignature,
-    authorizeUserMode(2),
+    authorizeUserMode([2]),
     checkUserExists,
     getTrainerProfil
 );
@@ -20,7 +20,7 @@ userRouter.get(
     "/trainee/profile",
     checkIsAccessTokenPassed,
     validateAccessTokenSignature,
-    authorizeUserMode(1),
+    authorizeUserMode([1]),
     checkUserExists,
     getTraineeProfile
 );
