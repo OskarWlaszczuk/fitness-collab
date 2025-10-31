@@ -17,8 +17,9 @@ export const checkUserExists = asyncErrorHandler(async (request, response, next)
         const error = new CustomError("user does not found", 404);
         return next(error);
     }
+    console.log("User exists:", user);
 
-    request.tokenPayload = tokenPayload;
+
     request.user = user;
     return next();
 });
