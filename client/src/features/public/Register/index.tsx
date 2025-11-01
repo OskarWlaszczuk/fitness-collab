@@ -1,84 +1,9 @@
 import { useState } from "react";
-import { useMutation, useQuery } from "@tanstack/react-query";
 import { SubmitButton, ErrorText, FormWrapper, Input, SuccessText, Form, ModeButton } from "./styled";
-import { Link, useNavigate, type NavigateFunction } from "react-router-dom";
-import axios from "axios";
-
-interface Mode {
-  id: number;
-  name: string;
-}
-
-interface RegisterData {
-  email: string;
-  name: string;
-  surname: string;
-  nickname: string;
-  password: string;
-  modeId: Mode["id"] | undefined;
-}
-
-const registerUser = async (data: RegisterData) => {
-  try {
-    const response = await axios.post("http://localhost:5000/api/auth/register", data, { withCredentials: true });
-    return response.data.data;
-  } catch (error) {
-    console.log(error);
-  }
-};
-
-const onRegisterSuccess = (navigate: NavigateFunction) => {
-  navigate("/home", { replace: true })
-};
-
-const onRegisterError = (error: unknown) => {
-  console.error("Registration error:", error);
-};
-
-const useRegisterUser = () => {
-  const navigate = useNavigate();
-
-  const { mutate, isPending, isSuccess, error, isError } = useMutation({
-    mutationFn: registerUser,
-    onSuccess: () => onRegisterSuccess(navigate),
-    onError: (error) => onRegisterError(error)
-  });
-
-  return {
-    mutate,
-    isPending,
-    isSuccess,
-    error,
-    isError
-  };
-};
-
-interface Mode {
-  id: number;
-  name: string;
-}
-
-interface ModesResponse {
-  modes: Mode[];
-}
-
-const fetchModes = async () => {
-  const response = await axios.get<ModesResponse>("http://localhost:5000/api/modes");
-  return response.data.modes;
-}
-
-const useGetModes = () => {
-  const {
-    status: modesStatus,
-    data: modes,
-    isPaused: isModesPaused
-  } = useQuery<Mode[]>({
-    queryKey: ["modes"],
-    queryFn: fetchModes,
-  });
-
-  return { modesStatus, isModesPaused, modes };
-};
+import { Link } from "react-router-dom";
+import { useGetUserModes } from "../../../common/hooks/useGetUserModes";
+import { useRegisterUserMutation } from "../../../common/hooks/useRegisterUserMutation";
+import type { RegisterData } from "../../../common/types/RegisterData";
 
 export const Register = () => {
   const [form, setForm] = useState<RegisterData>({
@@ -87,7 +12,7 @@ export const Register = () => {
     surname: "",
     nickname: "",
     password: "",
-    modeId: undefined,
+    modeId: 1,
   });
 
   const {
@@ -96,7 +21,7 @@ export const Register = () => {
     isSuccess: isRegisterUserSuccess,
     error: registerUserError,
     isError: isRegisterUserError,
-  } = useRegisterUser();
+  } = useRegisterUserMutation();
 
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement>
@@ -109,8 +34,7 @@ export const Register = () => {
     registerUser(form);
   };
 
-  const { modes } = useGetModes();
-  console.log(form);
+  const { modes } = useGetUserModes();
 
   return (
     <FormWrapper>
@@ -155,9 +79,6 @@ export const Register = () => {
           onChange={handleInputChange}
           required
         />
-
-
-
         <p>Login <Link to="/login">here</Link></p>
         {(isRegisterUserError && registerUserError) && (
           <ErrorText>{registerUserError.message}</ErrorText>
@@ -168,6 +89,7 @@ export const Register = () => {
       </Form>
       <div>
         {
+          //wynieść do oddzielnego komponentu 
           modes?.map(({ name, id }) => (
             <ModeButton
               $active={form.modeId === id}
