@@ -1,32 +1,10 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
 import { SubmitButton, ErrorText, FormWrapper, Input, SuccessText, Form, ModeButton } from "../Register/styled";
 import { Link } from "react-router-dom";
-import axios from "axios";
-import type { UserMode } from "../../../common/types/UserMode";
 import type { LoginData } from "../../../common/types/LoginData";
 import { useLoginUserMutation } from "../../../common/hooks/useLoginUserMutation";
-interface ModesResponse {
-    modes: UserMode[];
-}
+import { useGetUserModes } from "../../../common/hooks/useGetUserModes";
 
-const fetchModes = async () => {
-    const response = await axios.get<ModesResponse>("http://localhost:5000/api/modes");
-    return response.data.modes;
-}
-
-const useGetModes = () => {
-    const {
-        status: modesStatus,
-        data: modes,
-        isPaused: isModesPaused
-    } = useQuery<UserMode[]>({
-        queryKey: ["modes"],
-        queryFn: fetchModes,
-    });
-
-    return { modesStatus, isModesPaused, modes };
-};
 
 export const Login = () => {
     const [form, setForm] = useState<LoginData>({
@@ -43,6 +21,7 @@ export const Login = () => {
         isError: isLoginError,
     } = useLoginUserMutation();
 
+    const { modes } = useGetUserModes();
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
     };
@@ -51,8 +30,6 @@ export const Login = () => {
         event.preventDefault();
         loginUser(form);
     };
-
-    const { modes } = useGetModes();
 
     return (
         <FormWrapper>
