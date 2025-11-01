@@ -1,8 +1,10 @@
 import { useLayoutEffect } from "react";
 import { userApi } from "../../apiClients";
 import { useAccessTokenQuery } from "../../common/hooks/useAccessTokenQuery";
+import { useNavigate } from "react-router-dom";
 
 export const useUserApiInterceptors = () => {
+    const navigate = useNavigate();
   const { accessToken, refetchAccessToken } = useAccessTokenQuery();
 
   useLayoutEffect(() => {
@@ -29,9 +31,10 @@ export const useUserApiInterceptors = () => {
           //po co odrzucenie obietnicy tutaj?
           return Promise.reject(error);
         } catch (error) {
+          navigate("/login", { replace: true });
           console.log(error);
         }
       }
     );
-  }, [accessToken, refetchAccessToken]);
+  }, [accessToken, refetchAccessToken, navigate]);
 };

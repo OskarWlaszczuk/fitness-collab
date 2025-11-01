@@ -1,15 +1,15 @@
 import {  Navigate, Route, Routes } from "react-router-dom"
-import { Home } from "../../features/Home";
+import { Home } from "../../features/modeProtected/shared/Home";
 import { Layout } from "./Layout";
 import { Register } from "../../features/public/Register";
 import { Login } from "../../features/public/Login";
 import { AuthRoute } from "./routes/AuthRoute";
 import { ProtectedRoute } from "./routes/ProtectedRoute";
-import { Chats } from "../../features/Chats";
+import { Chats } from "../../features/modeProtected/shared/Chats";
 import { ModeProtectedRoute } from "./routes/ModeProtectedRoute";
-import { Workouts } from "../../features/Workouts";
-import { WorkoutCreator } from "../../features/WorkoutCreator";
-import { Unauthorized } from "../../features/Unauthorized";
+import { Workouts } from "../../features/modeProtected/trainee/Workouts";
+import { WorkoutCreator } from "../../features/modeProtected/trainer/WorkoutCreator";
+import { Unauthorized } from "../../features/modeProtected/shared/Unauthorized";
 import { Missing } from "../../features/public/Missing";
 import { useUserApiInterceptors } from "./useUserApiInterceptors";
 

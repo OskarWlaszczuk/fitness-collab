@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
-import { useAccessTokenQuery } from "../../common/hooks/useAccessTokenQuery";
-import { useUserActiveModeQuery } from "../../common/hooks/useUserActiveModeQuery";
-import { userApi } from "../../apiClients";
+import { useAccessTokenQuery } from "../../../../common/hooks/useAccessTokenQuery";
+import { useUserActiveModeQuery } from "../../../../common/hooks/useUserActiveModeQuery";
+import { userApi } from "../../../../apiClients";
 
 export const Home = () => {
     const { accessToken } = useAccessTokenQuery();
