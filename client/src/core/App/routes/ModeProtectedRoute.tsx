@@ -1,6 +1,6 @@
 import { Navigate, Outlet } from "react-router-dom";
 import { useUserActiveModeQuery } from "../../../common/hooks/useUserActiveModeQuery";
-import type { UserMode } from "../../../features/Login";
+import type { UserMode } from "../../../common/types/UserMode";
 
 interface Props {
     allowedModes: UserMode["id"][];

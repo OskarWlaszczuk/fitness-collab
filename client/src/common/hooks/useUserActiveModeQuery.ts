@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { userApi } from "../../apiClients";
-import type { UserMode } from "../../features/Login";
 import { useAccessTokenQuery } from "./useAccessTokenQuery";
+import type { UserMode } from "../types/UserMode";
 
 interface UserActiveModeResponse {
     mode: UserMode;

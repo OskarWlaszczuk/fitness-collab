@@ -3,11 +3,7 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { SubmitButton, ErrorText, FormWrapper, Input, SuccessText, Form, ModeButton } from "../Register/styled";
 import { Link, useNavigate, type NavigateFunction } from "react-router-dom";
 import axios from "axios";
-
-export interface UserMode {
-    id: number;
-    name: string;
-}
+import type { UserMode } from "../../../common/types/UserMode";
 
 interface ModesResponse {
     modes: UserMode[];
