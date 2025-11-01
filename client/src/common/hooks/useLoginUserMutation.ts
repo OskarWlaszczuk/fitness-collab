@@ -1,33 +1,31 @@
-import { useNavigate, type NavigateFunction } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { authApi } from "../../apiClients";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import type { LoginData } from "../types/LoginData";
+import type { LoginResponse } from "../types/LoginResponse";
 
 const loginUser = async (data: LoginData) => {
     try {
-        const response = await authApi.post("/login", data);
-        return response.data.data;
+        const response = await authApi.post<LoginResponse>("/login", data);
+        return response.data;
     } catch (error) {
         console.error("Login request error:", error);
         throw error;
     }
 };
 
-const onLoginSuccess = (navigate: NavigateFunction) => {
-    navigate("/home", { replace: true });
-};
-
-const onLoginError = (error: unknown) => {
-    console.error("Login error:", error);
-};
-
 export const useLoginUserMutation = () => {
     const navigate = useNavigate();
+    const queryClient = useQueryClient();
 
     const { mutate, isPending, isSuccess, error, isError } = useMutation({
         mutationFn: loginUser,
-        onSuccess: () => onLoginSuccess(navigate),
-        onError: (error) => onLoginError(error)
+        onSuccess: ({ accessToken, mode }) => {
+            queryClient.setQueryData(["accessToken"], accessToken);
+            queryClient.setQueryData(["userActiveMode"], mode);
+
+            navigate("/home", { replace: true });
+        },
     });
 
     return {
