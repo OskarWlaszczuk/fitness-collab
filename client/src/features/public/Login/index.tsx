@@ -1,55 +1,14 @@
 import { useState } from "react";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { SubmitButton, ErrorText, FormWrapper, Input, SuccessText, Form, ModeButton } from "../Register/styled";
-import { Link, useNavigate, type NavigateFunction } from "react-router-dom";
+import { Link } from "react-router-dom";
 import axios from "axios";
 import type { UserMode } from "../../../common/types/UserMode";
-
+import type { LoginData } from "../../../common/types/LoginData";
+import { useLoginUserMutation } from "../../../common/hooks/useLoginUserMutation";
 interface ModesResponse {
     modes: UserMode[];
 }
-
-interface LoginData {
-    email: string;
-    password: string;
-    modeId: UserMode["id"] | undefined;
-}
-
-const loginUser = async (data: LoginData) => {
-    try {
-        const response = await axios.post("http://localhost:5000/api/auth/login", data, { withCredentials: true });
-        return response.data.data;
-    } catch (error) {
-        console.error("Login request error:", error);
-        throw error;
-    }
-};
-
-const onLoginSuccess = (navigate: NavigateFunction) => {
-    navigate("/home", {replace: true});
-};
-
-const onLoginError = (error: unknown) => {
-    console.error("Login error:", error);
-};
-
-const useLoginUser = () => {
-    const navigate = useNavigate();
-
-    const { mutate, isPending, isSuccess, error, isError } = useMutation({
-        mutationFn: loginUser,
-        onSuccess: () => onLoginSuccess(navigate),
-        onError: (error) => onLoginError(error)
-    });
-
-    return {
-        mutate,
-        isPending,
-        isSuccess,
-        error,
-        isError
-    };
-};
 
 const fetchModes = async () => {
     const response = await axios.get<ModesResponse>("http://localhost:5000/api/modes");
@@ -82,7 +41,7 @@ export const Login = () => {
         isSuccess: isLoginSuccess,
         error: loginError,
         isError: isLoginError,
-    } = useLoginUser();
+    } = useLoginUserMutation();
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
