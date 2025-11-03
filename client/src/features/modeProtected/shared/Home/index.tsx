@@ -30,7 +30,7 @@ export const Home = () => {
 
     return (
         <div style={{ color: "black" }}>
-            hello {activeMode?.mode.name} {userProfile?.user.name}
+            hello {activeMode?.name} {userProfile?.user.name}
         </div>
     );
 };
