@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { SubmitButton, ErrorText, FormWrapper, Input, SuccessText, Form, ModeButton } from "./styled";
 import { Link } from "react-router-dom";
-import { useGetUserModes } from "../../../common/hooks/useGetUserModes";
+import { useUserModesQuery } from "../../../common/hooks/useUserModesQuery";
 import { useRegisterUserMutation } from "../../../common/hooks/useRegisterUserMutation";
 import type { RegisterData } from "../../../common/types/RegisterData";
 
@@ -22,6 +22,7 @@ export const Register = () => {
     error: registerUserError,
     isError: isRegisterUserError,
   } = useRegisterUserMutation();
+  console.log(registerUserError?.response.data.message);
 
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement>
@@ -34,7 +35,7 @@ export const Register = () => {
     registerUser(form);
   };
 
-  const { modes } = useGetUserModes();
+  const { modes } = useUserModesQuery();
 
   return (
     <FormWrapper>
@@ -81,7 +82,7 @@ export const Register = () => {
         />
         <p>Login <Link to="/login">here</Link></p>
         {(isRegisterUserError && registerUserError) && (
-          <ErrorText>{registerUserError.message}</ErrorText>
+          <ErrorText>{registerUserError?.response.data.message}</ErrorText>
         )}
         {isRegisterUserSuccess && (
           <SuccessText>Registration successful!</SuccessText>

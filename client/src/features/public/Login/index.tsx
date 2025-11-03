@@ -3,14 +3,13 @@ import { SubmitButton, ErrorText, FormWrapper, Input, SuccessText, Form, ModeBut
 import { Link } from "react-router-dom";
 import type { LoginData } from "../../../common/types/LoginData";
 import { useLoginUserMutation } from "../../../common/hooks/useLoginUserMutation";
-import { useGetUserModes } from "../../../common/hooks/useGetUserModes";
-
+import { useUserModesQuery } from "../../../common/hooks/useUserModesQuery";
 
 export const Login = () => {
     const [form, setForm] = useState<LoginData>({
         email: "",
         password: "",
-        modeId: undefined
+        modeId: 1
     });
 
     const {
@@ -21,7 +20,10 @@ export const Login = () => {
         isError: isLoginError,
     } = useLoginUserMutation();
 
-    const { modes } = useGetUserModes();
+    console.log(loginError?.response.data.message);
+
+
+    const { modes } = useUserModesQuery();
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
     };
@@ -54,7 +56,7 @@ export const Login = () => {
                 <p>Don't have an account? <Link to="/register">Register here</Link></p>
 
                 {(isLoginError && loginError) && (
-                    <ErrorText>Nie udało się zalogować. Sprawdź dane.</ErrorText>
+                    <ErrorText>{loginError?.response.data.message}</ErrorText>
                 )}
                 {isLoginSuccess && (
                     <SuccessText>Logowanie zakończone sukcesem!</SuccessText>
