@@ -17,7 +17,7 @@ export const useRegisterUserMutation = () => {
     mutationFn: registerUser,
     onSuccess: ({ accessToken, mode }) => {
       queryClient.setQueryData(["accessToken"], accessToken);
-      queryClient.setQueryData(["userActiveMode"], mode);
+      queryClient.setQueryData(["user", "activeMode"], mode);
 
       navigate("/home", { replace: true });
     },

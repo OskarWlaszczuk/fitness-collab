@@ -22,7 +22,7 @@ export const useLoginUserMutation = () => {
         mutationFn: loginUser,
         onSuccess: ({ accessToken, mode }) => {
             queryClient.setQueryData(["accessToken"], accessToken);
-            queryClient.setQueryData(["userActiveMode"], mode);
+            queryClient.setQueryData(["user", "activeMode"], mode);
 
             navigate("/home", { replace: true });
         },

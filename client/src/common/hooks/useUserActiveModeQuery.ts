@@ -13,13 +13,13 @@ export const useUserActiveModeQuery = () => {
 
     const refreshTimeMin = 15 * 60 * 1000;
     //jak obsługiwać błędu queryFn?
-    const fetchUserActiveMode = async (): Promise<UserActiveModeResponse> => {
-        const response = await userApi.get("/user/activeMode");
-        return response.data;
+    const fetchUserActiveMode = async (): Promise<UserMode> => {
+        const response = await userApi.get<UserActiveModeResponse>("/user/activeMode");
+        return response.data.mode;
     };
 
-    const { data: activeMode, status, isPaused, error } = useQuery<UserActiveModeResponse>({
-        queryKey: ["activeMode"],
+    const { data: activeMode, status, isPaused, error } = useQuery({
+        queryKey: ["user", "activeMode"],
         queryFn: fetchUserActiveMode,
         staleTime: refreshTimeMin,
         gcTime: refreshTimeMin,
