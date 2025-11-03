@@ -11,13 +11,14 @@ const fetchModes = async () => {
     return response.data.modes;
 };
 
-export const useGetUserModes = () => {
+export const useUserModesQuery = () => {
     const {
         status: modesStatus,
         data: modes,
         isPaused: isModesPaused
     } = useQuery<UserMode[]>({
-        queryKey: ["modes"],
+        //czy dodać tu id użytkownika?
+        queryKey: ["user", "modes"],
         queryFn: fetchModes,
     });
 
