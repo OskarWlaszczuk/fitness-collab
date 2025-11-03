@@ -11,7 +11,7 @@ export const ModeProtectedRoute = ({ allowedModes }: Props) => {
 
     if (status === "pending") return <p>Loading...</p>;
 
-    if (!activeMode || !allowedModes.includes(activeMode.mode.id)) {
+    if (!activeMode || !allowedModes.includes(activeMode.id)) {
         return <Navigate to="/unauthorized" replace />;
     }
 
