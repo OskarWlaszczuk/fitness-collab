@@ -2,10 +2,12 @@ import { useLayoutEffect } from "react";
 import { userApi } from "../../apiClients";
 import { useAccessTokenQuery } from "../../common/hooks/useAccessTokenQuery";
 import { useNavigate } from "react-router-dom";
+import { useLogoutUserMutation } from "../../common/hooks/useLogoutUserMutation";
 
 export const useUserApiInterceptors = () => {
-    const navigate = useNavigate();
+  const navigate = useNavigate();
   const { accessToken, refetchAccessToken } = useAccessTokenQuery();
+  const { logout } = useLogoutUserMutation();
 
   useLayoutEffect(() => {
     userApi.interceptors.request.use((config) => {
@@ -31,10 +33,11 @@ export const useUserApiInterceptors = () => {
           //po co odrzucenie obietnicy tutaj?
           return Promise.reject(error);
         } catch (error) {
+          logout();
           navigate("/login", { replace: true });
           console.log(error);
         }
       }
     );
-  }, [accessToken, refetchAccessToken, navigate]);
+  }, [accessToken, refetchAccessToken, navigate, logout]);
 };
