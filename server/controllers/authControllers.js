@@ -195,11 +195,8 @@ export const login = asyncErrorHandler(async (request, response, next) => {
     return response
         .status(201)
         .json({
-            success: true,
-            data: {
-                user: responseUserData,
-                mode,
-                accessToken,
-            }
+            user: responseUserData,
+            mode,
+            accessToken,
         });
 });
