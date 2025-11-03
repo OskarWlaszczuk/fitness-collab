@@ -1,4 +1,4 @@
-import {  Navigate, Route, Routes } from "react-router-dom"
+import { Navigate, Route, Routes } from "react-router-dom"
 import { Home } from "../../features/modeProtected/shared/Home";
 import { Layout } from "./Layout";
 import { Register } from "../../features/public/Register";
@@ -12,6 +12,8 @@ import { WorkoutCreator } from "../../features/modeProtected/trainer/WorkoutCrea
 import { Unauthorized } from "../../features/modeProtected/shared/Unauthorized";
 import { Missing } from "../../features/public/Missing";
 import { useUserApiInterceptors } from "./useUserApiInterceptors";
+import { TrainerProfile } from "../../features/modeProtected/shared/TrainerProfile";
+import { WorkoutDetails } from "../../features/modeProtected/trainee/WorkoutDetails";
 
 export const App = () => {
   useUserApiInterceptors();
@@ -28,10 +30,11 @@ export const App = () => {
         <Route element={<ProtectedRoute />}>
           <Route path="/home" element={<Home />} />
           <Route path="/chats" element={<Chats />} />
-          <Route path="/profile" element={<>Profile</>} />
+          <Route path="/trainers/:id" element={<TrainerProfile />} />
 
           <Route element={<ModeProtectedRoute allowedModes={[1]} />}>
             <Route path="/workouts" element={<Workouts />} />
+            <Route path="/workouts/:id" element={<WorkoutDetails />} />
           </Route>
 
           <Route element={<ModeProtectedRoute allowedModes={[2]} />}>
