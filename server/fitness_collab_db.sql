@@ -1,5 +1,9 @@
 CREATE DATABASE fitness_collab_db;
 
+CREATE TYPE week_day AS ENUM ( 
+    'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'
+);
+
 CREATE TABLE users (
     id SERIAL PRIMARY KEY,
     name VARCHAR(30) NOT NULL,
@@ -51,4 +55,22 @@ CREATE TABLE user_modes (
     PRIMARY KEY (user_id, mode_id),
     FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE,
     FOREIGN KEY (mode_id) REFERENCES modes (id) ON DELETE CASCADE
+);
+
+CREATE TABLE workout_plan (
+    name VARCHAR(30) NOT NULL,
+    id SERIAL PRIMARY KEY,
+    trainer_id INT NOT NULL,
+    trainee_id INT NOT NULL,
+    FOREIGN KEY (trainer_id) REFERENCES trainers (id) ON DELETE CASCADE,
+    FOREIGN KEY (trainee_id) REFERENCES trainees (id) ON DELETE CASCADE
+);
+
+CREATE TABLE workout_plan_day (
+    name VARCHAR(30) NOT NULL,
+    week_day week_day NOT NULL,
+    total_excersise INT NOT NULL,
+    id SERIAL PRIMARY KEY,
+    workout_plan_Id  INT NOT NULL,
+    FOREIGN KEY (workout_plan_Id) REFERENCES workout_plan (id) ON DELETE CASCADE
 );
