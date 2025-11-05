@@ -1,5 +1,5 @@
 import express from "express";
-import { getUserActiveMode, getUserProfile } from "../controllers/usersControllers.js";
+import { getUserActiveMode, getUserProfile } from "../controllers/userControllers.js";
 
 const userRouter = express.Router();
 
