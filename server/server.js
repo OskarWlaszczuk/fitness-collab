@@ -36,7 +36,7 @@ app.use("/api/auth", authRouter);
 app.use("/api/modes", modesRouter);
 app.use("/api/user", checkIsAccessTokenPassed, validateAccessTokenSignature, checkUserExists, userRouter);
 app.use("/api/trainee", checkIsAccessTokenPassed, validateAccessTokenSignature, checkUserExists, authorizeUserMode([1]), traineeRouter);
-app.use("/api/trainer", trainerRouter);
+app.use("/api/trainer", checkIsAccessTokenPassed, validateAccessTokenSignature, checkUserExists, authorizeUserMode([2]), trainerRouter);
 
 const fallbackApiHandler = (request, response, next) => {
     const error = new CustomError(`Can't find ${request.originalUrl} on the server`, 404);
