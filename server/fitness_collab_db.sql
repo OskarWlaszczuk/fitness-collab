@@ -74,3 +74,45 @@ CREATE TABLE workout_plan_day (
     workout_plan_Id  INT NOT NULL,
     FOREIGN KEY (workout_plan_Id) REFERENCES workout_plan (id) ON DELETE CASCADE
 );
+
+CREATE TABLE muscle_groups (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(30) NOT NULL,
+);
+
+CREATE TABLE muscle_subgroup (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(30) NOT NULL,
+    muscle_group_id  INT NOT NULL,
+    FOREIGN KEY (muscle_group_id) REFERENCES muscle_groups (id) ON DELETE CASCADE
+);
+
+CREATE TABLE excersises (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(30) NOT NULL,
+);
+
+CREATE TABLE excersise_muscle_subgroup (
+    excersise_id INT NOT NULL,
+    muscle_group_id  INT NOT NULL,
+    FOREIGN KEY (muscle_group_id) REFERENCES muscle_groups (id) ON DELETE CASCADE,
+    FOREIGN KEY (excersise_id) REFERENCES excersises (id) ON DELETE CASCADE
+);
+
+CREATE TABLE workout_excersise (
+    id SERIAL PRIMARY KEY,
+    excersise_id INT NOT NULL,
+    workout_plan_day_id INT NOT NULL,
+    sets INT NOT NULL,
+    break_min_sec INT NOT NULL,
+    break_max_sec INT,
+    reps_min INT,
+    reps_max INT,
+    eccentric: INT,
+    concentric: INT,
+    eccentricPause: INT,
+    concentricPause: INT,
+    PRIMARY KEY (workout_plan_day_id, excersise_id),
+    FOREIGN KEY (workout_plan_day_id) REFERENCES workout_plan_day (id) ON DELETE CASCADE,
+    FOREIGN KEY (excersise_id) REFERENCES excersises (id) ON DELETE CASCADE
+);
