@@ -12,6 +12,9 @@ import modesRouter from "./routes/modesRouter.js";
 import userRouter from "./routes/userRouter.js";
 import traineeRouter from "./routes/traineeRouter.js";
 import trainerRouter from "./routes/trainerRouter.js";
+import { checkIsAccessTokenPassed } from "./middlewares/checkIsAccessTokenPassed.js";
+import { validateAccessTokenSignature } from "./middlewares/validateAccessTokenSignature.js";
+import { checkUserExists } from "./middlewares/checkUserExists.js";
 config({ path: `${process.cwd()}/.env` });
 
 const __filename = fileURLToPath(import.meta.url);
@@ -30,7 +33,7 @@ app.use(express.static(path.join(__dirname, "../client/public")));
 
 app.use("/api/auth", authRouter);
 app.use("/api/modes", modesRouter);
-app.use("/api/user", userRouter);
+app.use("/api/user", checkIsAccessTokenPassed, validateAccessTokenSignature, checkUserExists, userRouter);
 app.use("/api/trainee", traineeRouter);
 app.use("/api/trainer", trainerRouter);
 
