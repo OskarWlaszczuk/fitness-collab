@@ -13,7 +13,7 @@ export const getUserActiveMode = asyncErrorHandler(async (request, response, nex
     return response.status(200).json({ mode });
 });
 
-export const getTrainerProfil = asyncErrorHandler(async (request, response, next) => {
+export const getUserProfile = asyncErrorHandler(async (request, response, next) => {
     const { tokenPayload } = request;
 
     const { rows: userRows } = await pool.query(
@@ -24,19 +24,5 @@ export const getTrainerProfil = asyncErrorHandler(async (request, response, next
     const user = userRows[0];
     console.log("selected user:", user);
 
-    response.status(200).json({ user, message: "Welcome trainer" });
-});
-
-export const getTraineeProfile = asyncErrorHandler(async (request, response, next) => {
-    const { tokenPayload } = request;
-
-    const { rows: userRows } = await pool.query(
-        "SELECT *  FROM users WHERE id = $1",
-        [tokenPayload.userId]
-    );
-
-    const user = userRows[0];
-    console.log("selected user:", user);
-
-    response.status(200).json({ user, message: "Welcome trainee" });
+    response.status(200).json({ user });
 });
