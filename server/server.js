@@ -15,6 +15,7 @@ import trainerRouter from "./routes/trainerRouter.js";
 import { checkIsAccessTokenPassed } from "./middlewares/checkIsAccessTokenPassed.js";
 import { validateAccessTokenSignature } from "./middlewares/validateAccessTokenSignature.js";
 import { checkUserExists } from "./middlewares/checkUserExists.js";
+import { authorizeUserMode } from "./middlewares/authorizeUserMode.js";
 config({ path: `${process.cwd()}/.env` });
 
 const __filename = fileURLToPath(import.meta.url);
@@ -34,7 +35,7 @@ app.use(express.static(path.join(__dirname, "../client/public")));
 app.use("/api/auth", authRouter);
 app.use("/api/modes", modesRouter);
 app.use("/api/user", checkIsAccessTokenPassed, validateAccessTokenSignature, checkUserExists, userRouter);
-app.use("/api/trainee", traineeRouter);
+app.use("/api/trainee", checkIsAccessTokenPassed, validateAccessTokenSignature, checkUserExists, authorizeUserMode([1]), traineeRouter);
 app.use("/api/trainer", trainerRouter);
 
 const fallbackApiHandler = (request, response, next) => {
