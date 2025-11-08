@@ -6,14 +6,16 @@ import { Login } from "../../features/public/Login";
 import { AuthRoute } from "./routes/AuthRoute";
 import { ProtectedRoute } from "./routes/ProtectedRoute";
 import { Chats } from "../../features/modeProtected/shared/Chats";
-import { ModeProtectedRoute } from "./routes/ModeProtectedRoute";
-import { Workouts } from "../../features/modeProtected/trainee/Workouts";
+import { RoleProtectedRoute } from "./routes/RoleProtectedRoute";
+import { WorkoutPlans } from "../../features/modeProtected/trainee/WorkoutPlans";
 import { WorkoutCreator } from "../../features/modeProtected/trainer/WorkoutCreator";
 import { Unauthorized } from "../../features/modeProtected/shared/Unauthorized";
 import { Missing } from "../../features/public/Missing";
 import { useUserApiInterceptors } from "./useUserApiInterceptors";
 import { TrainerProfile } from "../../features/modeProtected/shared/TrainerProfile";
-import { WorkoutDetails } from "../../features/modeProtected/trainee/WorkoutDetails";
+import { WorkoutPlanDay } from "../../features/modeProtected/trainee/WorkoutPlanDay"
+import { ExcersiseLog } from "../../features/modeProtected/trainee/ExcersiseLog";
+import { ExcersiseLogEntries } from "../../features/modeProtected/trainee/ExcersiseLogEntries";
 
 export const App = () => {
   useUserApiInterceptors();
@@ -32,12 +34,14 @@ export const App = () => {
           <Route path="/chats" element={<Chats />} />
           <Route path="/trainers/:id" element={<TrainerProfile />} />
 
-          <Route element={<ModeProtectedRoute allowedModes={[1]} />}>
-            <Route path="/workouts" element={<Workouts />} />
-            <Route path="/workouts/:id" element={<WorkoutDetails />} />
+          <Route element={<RoleProtectedRoute allowedRoles={[1]} />}>
+            <Route path="/workout-plans" element={<WorkoutPlans />} />
+            <Route path="/workout-plan-day/:id" element={<WorkoutPlanDay />} />
+            <Route path="/excersise-log" element={<ExcersiseLog />} />
+            <Route path="/excersise-log-entries/:id" element={<ExcersiseLogEntries />} />
           </Route>
 
-          <Route element={<ModeProtectedRoute allowedModes={[2]} />}>
+          <Route element={<RoleProtectedRoute allowedRoles={[2]} />}>
             <Route path="/workout-creator" element={<WorkoutCreator />} />
           </Route>
 

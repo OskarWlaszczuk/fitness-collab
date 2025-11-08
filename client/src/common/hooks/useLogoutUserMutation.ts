@@ -16,7 +16,7 @@ export const useLogoutUserMutation = () => {
             //czy powinienem wszystkie dane użytkownika usunąć z cache?
             queryClient.setQueryData(["accessToken"], null);
             queryClient.setQueryData(["user", "profile"], null);
-            queryClient.setQueryData(["user", "activeMode"], null);
+            queryClient.setQueryData(["user", "activeRole"], null);
 
             navigate("/login", { replace: true });
         },

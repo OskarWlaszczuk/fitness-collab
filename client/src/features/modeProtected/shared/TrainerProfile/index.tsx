@@ -1,8 +1,8 @@
 import { useParams } from "react-router-dom";
-import { useUserActiveModeQuery } from "../../../../common/hooks/useUserActiveModeQuery";
+import { useUserActiveRoleQuery } from "../../../../common/hooks/useUserActiveRoleQuery";
 
 export const TrainerProfile = () => {
-    const { activeMode } = useUserActiveModeQuery();
+    const { activeRole } = useUserActiveRoleQuery();
     const { id } = useParams();
 
     return (
@@ -11,7 +11,7 @@ export const TrainerProfile = () => {
             <section>
                 <header>Description</header>
                 {
-                    activeMode?.name === "trainer" && (
+                    activeRole?.name === "trainer" && (
                         <div>
                             <button>Edit</button>
                         </div>

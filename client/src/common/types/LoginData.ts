@@ -1,7 +1,7 @@
-import type { UserMode } from "./UserMode";
+import type { UserRole } from "./UserRole";
 
 export interface LoginData {
     email: string;
     password: string;
-    modeId: UserMode["id"];
+    roleId: UserRole["id"];
 }

@@ -1,4 +1,4 @@
-export interface UserMode {
+export interface UserRole {
     id: number;
     name: string;
 }

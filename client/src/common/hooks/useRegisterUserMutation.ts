@@ -15,9 +15,9 @@ export const useRegisterUserMutation = () => {
 
   const { mutate, isPending, isSuccess, error, isError } = useMutation({
     mutationFn: registerUser,
-    onSuccess: ({ accessToken, mode }) => {
+    onSuccess: ({ accessToken, role }) => {
       queryClient.setQueryData(["accessToken"], accessToken);
-      queryClient.setQueryData(["user", "activeMode"], mode);
+      queryClient.setQueryData(["user", "activeRole"], role);
 
       navigate("/home", { replace: true });
     },

@@ -1,14 +1,14 @@
 import { StyledTopPanel } from "./styled"
-import { useUserActiveModeQuery } from "../../../../common/hooks/useUserActiveModeQuery";
+import { useUserActiveRoleQuery } from "../../../../common/hooks/useUserActiveRoleQuery";
 import { useLogoutUserMutation } from "../../../../common/hooks/useLogoutUserMutation";
 
 export const TopPanel = () => {
     const { logout } = useLogoutUserMutation();
-    const { activeMode } = useUserActiveModeQuery();
+    const { activeRole } = useUserActiveRoleQuery();
 
     return (
         <StyledTopPanel>
-            <button onClick={()=> logout()}>logout {activeMode?.name}</button>
+            <button onClick={()=> logout()}>logout {activeRole?.name}</button>
         </StyledTopPanel>
     );
 };

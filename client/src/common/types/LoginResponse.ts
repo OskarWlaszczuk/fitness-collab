@@ -1,9 +1,9 @@
 import type { AccessToken } from "./AccessToken";
-import type { UserMode } from "./UserMode";
+import type { UserRole } from "./UserRole";
 
 export interface LoginResponse {
     accessToken: AccessToken,
-    mode: UserMode
+    role: UserRole
     user: {
         id: number;
         name: string;

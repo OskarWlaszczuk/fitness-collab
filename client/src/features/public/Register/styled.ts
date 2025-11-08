@@ -33,11 +33,11 @@ export const Input = styled.input`
   }
 `;
 
-interface ModeButtonProps {
+interface RoleButtonProps {
   $active?: boolean;
 }
 
-export const ModeButton = styled.button<ModeButtonProps>`
+export const RoleButton = styled.button<RoleButtonProps>`
   padding: 0.75rem 1rem;
   border: none;
   border-radius: 8px;

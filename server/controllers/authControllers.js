@@ -8,16 +8,16 @@ import { startUserTokenSession } from "../services/startUserTokenSession.js";
 import { generateAccessToken } from "../utils/generateAccessToken.js";
 import { endUserTokenSession } from "../services/endUserTokenSession.js";
 import { validatePassword } from "../utils/validatePassword.js";
-import { getUserModes } from "../services/getUserModes.js";
+import { getUserRoles } from "../services/getUserRoles.js";
 import { hashUserPassword } from "../utils/hashUserPassword.js";
 
 config();
 
 export const refreshAccessToken = asyncErrorHandler(async (request, response) => {
     console.log("refreshing token...");
-    const { userId, modeId } = request.tokenPayload;
+    const { userId, roleId } = request.tokenPayload;
 
-    const tokenPayload = { userId, modeId };
+    const tokenPayload = { userId, roleId };
     const accessToken = generateAccessToken(tokenPayload);
 
     response.status(200).json({ accessToken });
@@ -42,19 +42,19 @@ export const logout = asyncErrorHandler(async (request, response) => {
 });
 
 export const register = asyncErrorHandler(async (request, response, next) => {
-    const { email, name, surname, nickname, password, modeId } = request.body;
+    const { email, name, surname, nickname, password, roleId } = request.body;
 
     const {
-        isEntityAvailable: isModeAvailable,
-        entity: mode
+        isEntityAvailable: isRoleAvailable,
+        entity: role
     } = await findEntityByColumnField({
-        entitiesTable: "modes",
+        entitiesTable: "roles",
         columnName: "id",
-        columnField: modeId
+        columnField: roleId
     });
 
-    if (!isModeAvailable) {
-        const error = new CustomError("invalid mode", 400);
+    if (!isRoleAvailable) {
+        const error = new CustomError("invalid role", 400);
         return next(error);
     }
 
@@ -88,12 +88,12 @@ export const register = asyncErrorHandler(async (request, response, next) => {
 
     const user = await registerUser({
         userData: [email, name, surname, nickname, hashedPassword],
-        mode,
+        role,
     });
 
     const tokenPayload = {
         userId: user.id,
-        modeId: mode.id,
+        roleId: role.id,
     };
 
     const { accessToken, refreshToken, hashedRefreshToken } = await generateJWTs(tokenPayload);
@@ -118,25 +118,25 @@ export const register = asyncErrorHandler(async (request, response, next) => {
             data: {
                 accessToken,
                 user,
-                mode
+                role
             }
         });
 });
 
 export const login = asyncErrorHandler(async (request, response, next) => {
-    const { email, password, modeId } = request.body;
+    const { email, password, roleId } = request.body;
 
     const {
-        isEntityAvailable: isModeAvailable,
-        entity: mode
+        isEntityAvailable: isRoleAvailable,
+        entity: role
     } = await findEntityByColumnField({
-        entitiesTable: "modes",
+        entitiesTable: "roles",
         columnName: "id",
-        columnField: modeId
+        columnField: roleId
     });
 
-    if (!isModeAvailable) {
-        const error = new CustomError("invalid mode", 400);
+    if (!isRoleAvailable) {
+        const error = new CustomError("invalid role", 400);
         return next(error);
     }
 
@@ -155,10 +155,10 @@ export const login = asyncErrorHandler(async (request, response, next) => {
         return next(error);
     }
 
-    const { isUserRegisteredInMode } = await getUserModes(user.id, modeId);
+    const { isUserRegisteredInRole } = await getUserRoles(user.id, roleId);
 
-    if (!isUserRegisteredInMode) {
-        const error = new CustomError("user is not register on this mode", 403);
+    if (!isUserRegisteredInRole) {
+        const error = new CustomError("user is not register on this role", 403);
         return next(error);
     }
 
@@ -172,7 +172,7 @@ export const login = asyncErrorHandler(async (request, response, next) => {
 
     const tokenPayload = {
         userId: user.id,
-        modeId: mode.id,
+        roleId: role.id,
     };
 
     const { accessToken, refreshToken, hashedRefreshToken } = await generateJWTs(tokenPayload);
@@ -196,7 +196,7 @@ export const login = asyncErrorHandler(async (request, response, next) => {
         .status(201)
         .json({
             user: responseUserData,
-            mode,
+            role,
             accessToken,
         });
 });

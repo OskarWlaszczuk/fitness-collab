@@ -1,7 +1,7 @@
 import { pool } from "../db.js";
 import { CustomError } from "../utils/CustomError.js";
 
-export const registerUser = async ({ userData, mode }) => {
+export const registerUser = async ({ userData, role }) => {
     const client = await pool.connect();
 
     try {
@@ -15,9 +15,9 @@ export const registerUser = async ({ userData, mode }) => {
         );
         const user = userRows[0];
         
-        await client.query("INSERT INTO user_modes (user_id, mode_id) VALUES  ($1, $2)", [user.id, mode.id]);
+        await client.query("INSERT INTO user_roles (user_id, role_id) VALUES  ($1, $2)", [user.id, role.id]);
 
-        switch (mode.name) {
+        switch (role.name) {
             case "trainer":
                 await client.query('INSERT INTO trainers (user_id) VALUES ($1)', [user.id]);
                 break;
@@ -27,7 +27,7 @@ export const registerUser = async ({ userData, mode }) => {
                 break;
 
             default:
-                throw new CustomError("invalid mode", 400);
+                throw new CustomError("invalid role", 400);
         }
 
         await client.query('COMMIT');

@@ -1,8 +1,8 @@
-import { useUserActiveModeQuery } from "../../../../common/hooks/useUserActiveModeQuery";
+import { useUserActiveRoleQuery } from "../../../../common/hooks/useUserActiveRoleQuery";
 import { NavItem, NavItemIcon, NavItemLabel, StyledNavPanel } from "./styled"
 
 export const NavPanel = () => {
-    const { activeMode, status } = useUserActiveModeQuery();
+    const { activeRole } = useUserActiveRoleQuery();
 
 
     const sharedNavConfig = [
@@ -16,19 +16,14 @@ export const NavPanel = () => {
             label: "Chats",
             routePath: "/chats"
         },
-        {
-            icon: "",
-            label: "Profile",
-            routePath: "/profile"
-        },
     ];
 
     const traineeNavConfig = [
         ...sharedNavConfig,
         {
             icon: "",
-            label: "workouts",
-            routePath: "/workouts"
+            label: "workout plans",
+            routePath: "/workout-plans"
         },
     ]
 
@@ -41,7 +36,7 @@ export const NavPanel = () => {
         },
     ]
 
-    const navConfig = activeMode?.mode.id === 1 ? traineeNavConfig : trainerNavConfig;
+    const navConfig = activeRole?.id === 1 ? traineeNavConfig : trainerNavConfig;
 
 
     return (

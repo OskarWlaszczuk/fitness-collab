@@ -26,4 +26,5 @@ authRouter.route("/refreshAccessToken").get(
     checkIsRefreshTokenIntegrated,
     refreshAccessToken
 );
+
 export default authRouter;

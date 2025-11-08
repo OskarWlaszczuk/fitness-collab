@@ -1,7 +1,7 @@
 import { useState } from "react";
-import { SubmitButton, ErrorText, FormWrapper, Input, SuccessText, Form, ModeButton } from "./styled";
+import { SubmitButton, ErrorText, FormWrapper, Input, SuccessText, Form, RoleButton } from "./styled";
 import { Link } from "react-router-dom";
-import { useUserModesQuery } from "../../../common/hooks/useUserModesQuery";
+import { useUserRolesQuery } from "../../../common/hooks/useUserRolesQuery";
 import { useRegisterUserMutation } from "../../../common/hooks/useRegisterUserMutation";
 import type { RegisterData } from "../../../common/types/RegisterData";
 
@@ -12,7 +12,7 @@ export const Register = () => {
     surname: "",
     nickname: "",
     password: "",
-    modeId: 1,
+    roleId: 1,
   });
 
   const {
@@ -35,7 +35,7 @@ export const Register = () => {
     registerUser(form);
   };
 
-  const { modes } = useUserModesQuery();
+  const { roles } = useUserRolesQuery();
 
   return (
     <FormWrapper>
@@ -91,18 +91,18 @@ export const Register = () => {
       <div>
         {
           //wynieść do oddzielnego komponentu 
-          modes?.map(({ name, id }) => (
-            <ModeButton
-              $active={form.modeId === id}
-              onClick={() => setForm(form => ({ ...form, modeId: id }))}
+          roles?.map(({ name, id }) => (
+            <RoleButton
+              $active={form.roleId === id}
+              onClick={() => setForm(form => ({ ...form, roleId: id }))}
               key={name}
             >
               {name}
-            </ModeButton>
+            </RoleButton>
           ))
         }
       </div>
-      <SubmitButton type="submit" disabled={isRegisterUserPending || !form.modeId} form="registrationForm">
+      <SubmitButton type="submit" disabled={isRegisterUserPending || !form.roleId} form="registrationForm">
         {isRegisterUserPending ? "Registering..." : "Register"}
       </SubmitButton>
     </FormWrapper>

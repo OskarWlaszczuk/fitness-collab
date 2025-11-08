@@ -1,11 +1,11 @@
 import { useQuery } from "@tanstack/react-query";
 import { useAccessTokenQuery } from "../../../../common/hooks/useAccessTokenQuery";
-import { useUserActiveModeQuery } from "../../../../common/hooks/useUserActiveModeQuery";
+import { useUserActiveRoleQuery } from "../../../../common/hooks/useUserActiveRoleQuery.ts";
 import { userApi } from "../../../../apiClients";
 
 export const Home = () => {
     const { accessToken } = useAccessTokenQuery();
-    const { activeMode } = useUserActiveModeQuery();
+    const { activeRole } = useUserActiveRoleQuery();
 
     const getUser = async () => {
         try {
@@ -30,7 +30,7 @@ export const Home = () => {
 
     return (
         <div style={{ color: "black" }}>
-            hello {activeMode?.name} {userProfile?.user.name}
+            hello {activeRole?.name} {userProfile?.user.name}
         </div>
     );
 };

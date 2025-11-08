@@ -1,9 +1,9 @@
 import express from "express";
-import { getUserActiveMode, getUserProfile } from "../controllers/userControllers.js";
+import { getUserActiveRole, getUserProfile } from "../controllers/userControllers.js";
 
 const userRouter = express.Router();
 
 userRouter.get("/profile", getUserProfile);
-userRouter.get("/activeMode", getUserActiveMode);
+userRouter.get("/activeRole", getUserActiveRole);
 
 export default userRouter;

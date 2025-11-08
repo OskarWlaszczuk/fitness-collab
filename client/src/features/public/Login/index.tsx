@@ -1,15 +1,15 @@
 import { useState } from "react";
-import { SubmitButton, ErrorText, FormWrapper, Input, SuccessText, Form, ModeButton } from "../Register/styled";
+import { SubmitButton, ErrorText, FormWrapper, Input, SuccessText, Form, RoleButton } from "../Register/styled";
 import { Link } from "react-router-dom";
 import type { LoginData } from "../../../common/types/LoginData";
 import { useLoginUserMutation } from "../../../common/hooks/useLoginUserMutation";
-import { useUserModesQuery } from "../../../common/hooks/useUserModesQuery";
+import { useUserRolesQuery } from "../../../common/hooks/useUserRolesQuery";
 
 export const Login = () => {
     const [form, setForm] = useState<LoginData>({
         email: "",
         password: "",
-        modeId: 1
+        roleId: 1
     });
 
     const {
@@ -23,7 +23,7 @@ export const Login = () => {
     console.log(loginError?.response.data.message);
 
 
-    const { modes } = useUserModesQuery();
+    const { roles } = useUserRolesQuery();
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
     };
@@ -64,18 +64,18 @@ export const Login = () => {
             </Form>
 
             <div>
-                {modes?.map(({ name, id }) => (
-                    <ModeButton
-                        $active={form.modeId === id}
-                        onClick={() => setForm(form => ({ ...form, modeId: id }))}
+                {roles?.map(({ name, id }) => (
+                    <RoleButton
+                        $active={form.roleId === id}
+                        onClick={() => setForm(form => ({ ...form, roleId: id }))}
                         key={name}
                     >
                         {name}
-                    </ModeButton>
+                    </RoleButton>
                 ))}
             </div>
 
-            <SubmitButton type="submit" disabled={isLoginPending || !form.modeId} form="loginForm">
+            <SubmitButton type="submit" disabled={isLoginPending || !form.roleId} form="loginForm">
                 {isLoginPending ? "Logowanie..." : "Zaloguj"}
             </SubmitButton>
         </FormWrapper>
