@@ -35,8 +35,8 @@ app.use(express.static(path.join(__dirname, "../client/public")));
 app.use("/api/auth", authRouter);
 app.use("/api/roles", rolesRouter);
 app.use("/api/user", checkIsAccessTokenPassed, validateAccessTokenSignature, checkUserExists, userRouter);
-app.use("/api/trainee", checkIsAccessTokenPassed, validateAccessTokenSignature, checkUserExists, authorizeUserRole([1]), traineeRouter);
-app.use("/api/trainer", checkIsAccessTokenPassed, validateAccessTokenSignature, checkUserExists, authorizeUserRole([2]), trainerRouter);
+app.use("/api/trainee", checkIsAccessTokenPassed, validateAccessTokenSignature, authorizeUserRole([1]), checkUserExists, traineeRouter);
+app.use("/api/trainer", checkIsAccessTokenPassed, validateAccessTokenSignature, authorizeUserRole([2]), checkUserExists, trainerRouter);
 
 const fallbackApiHandler = (request, response, next) => {
     const error = new CustomError(`Can't find ${request.originalUrl} on the server`, 404);
