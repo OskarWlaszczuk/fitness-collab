@@ -103,23 +103,33 @@ export const getTraineeProfile = asyncErrorHandler(async (request, response, nex
 
 export const getTraineeWorkoutPlanDay = asyncErrorHandler(async (request, response, next) => {
     const { tokenPayload } = request;
-    const { id: workoutPlanDayId } = request.params;
+    const { id: workoutId } = request.params;
 
     const { rows: traineeRows } = await pool.query("SELECT id FROM trainees WHERE user_id = $1", [tokenPayload.userId]);
     const traineeId = traineeRows[0].id;
 
-    const { rows } = await pool.query(
-        "SELECT * FROM \
+    const { rows: workoutRows } = await pool.query(
+        "SELECT \
+            workout_plan_days.id AS id, \
+            workout_plan_days.name AS name, \
+            workout_plan_days.week_day, \
+            json_build_object( \
+                'id', workout_plans.id,  \
+                'name', workout_plans.name  \
+            ) AS plan \
+        FROM \
         workout_plan_days JOIN workout_plans \
         ON workout_plan_days.workout_plan_id = workout_plans.id \
         WHERE workout_plans.trainee_id = $1 AND workout_plan_days.id = $2",
-        [traineeId, workoutPlanDayId]
+        [traineeId, workoutId]
     );
 
-    if (!rows.length) {
+    if (!workoutRows.length) {
         const error = new CustomError("This workout does not belong to you", 403);
         return next(error);
     }
+
+    const workout = workoutRows[0];
 
     const { rows: excersises } = await pool.query(
         "SELECT \
@@ -156,13 +166,13 @@ export const getTraineeWorkoutPlanDay = asyncErrorHandler(async (request, respon
             workout_plan_day_excersises JOIN excersises \
             ON workout_plan_day_excersises.excersise_id = excersises.id \
             WHERE workout_plan_day_excersises.workout_plan_day_id = $1",
-        [workoutPlanDayId]
+        [workoutId]
     );
 
-    response
+    return response
         .status(200)
         .json({
-            excersises
+            workout: { ...workout, excersises }
         });
 });
 
