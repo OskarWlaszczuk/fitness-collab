@@ -1,126 +1,84 @@
 import { useState } from "react";
 import { WorkoutPlanDayExcersise } from "./WorkoutPlanDayExcersise";
+import { useQuery } from "@tanstack/react-query";
+import { userApi } from "../../../../apiClients";
+import { useParams } from "react-router-dom";
 
-type MuscleGroups = string;
-type PaceValue = number;
+// type MuscleGroups = string;
+// type PaceValue = number;
 
 
-export interface ExcersiseRepPace {
-    eccentric: PaceValue,
-    concentric: PaceValue,
-    eccentricPause: PaceValue,
-    concentricPause: PaceValue,
-}
+// export interface ExcersiseRepPace {
+//     eccentric: PaceValue,
+//     concentric: PaceValue,
+//     eccentricPause: PaceValue,
+//     concentricPause: PaceValue,
+// }
 
-interface WorkoutExcersiseOverview {
-    id: number;
-    order: number;
-    name: string;
-    sets: number;
-    repsRange: {
-        min: number;
-        max?: number;
-    };
-    pace: ExcersiseRepPace,
-    breakRange: {
-        min: number;
-        max?: number;
-    };
-    muscleGroups: MuscleGroups[];
-}
-
-const workoutExercises: WorkoutExcersiseOverview[] = [
-    {
-        id: 1,
-        order: 1,
-        name: "Barbell Squat",
-        sets: 4,
-        repsRange: { min: 6, max: 8 },
-        pace: { eccentric: 3, concentric: 1, eccentricPause: 0, concentricPause: 1 },
-        breakRange: { min: 90, max: 120 },
-        muscleGroups: ["quadriceps", "glutes", "hamstrings", "core"]
-    },
-    {
-        id: 2,
-        order: 2,
-        name: "Romanian Deadlift",
-        sets: 3,
-        repsRange: { min: 8, max: 10 },
-        pace: { eccentric: 3, concentric: 1, eccentricPause: 0, concentricPause: 0 },
-        breakRange: { min: 90, max: 120 },
-        muscleGroups: ["hamstrings", "glutes", "lower back"]
-    },
-    {
-        id: 3,
-        order: 3,
-        name: "Dumbbell Bench Press",
-        sets: 4,
-        repsRange: { min: 8, max: 10 },
-        pace: { eccentric: 2, concentric: 1, eccentricPause: 0, concentricPause: 1 },
-        breakRange: { min: 60, max: 90 },
-        muscleGroups: ["chest", "triceps", "front delts"]
-    },
-    {
-        id: 4,
-        order: 4,
-        name: "Pull-Up",
-        sets: 4,
-        repsRange: { min: 6, max: 10 },
-        pace: { eccentric: 3, concentric: 1, eccentricPause: 0, concentricPause: 1 },
-        breakRange: { min: 90 },
-        muscleGroups: ["lats", "biceps", "rear delts", "core"]
-    },
-    {
-        id: 5,
-        order: 5,
-        name: "Seated Dumbbell Shoulder Press",
-        sets: 3,
-        repsRange: { min: 10, max: 12 },
-        pace: { eccentric: 2, concentric: 1, eccentricPause: 0, concentricPause: 1 },
-        breakRange: { min: 60, max: 90 },
-        muscleGroups: ["shoulders", "triceps"]
-    },
-];
-
-const workout = {
-    id: 1,
-    name: "PUSH",
-    weekDay: "monday",
-};
+// interface WorkoutExcersiseOverview {
+//     id: number;
+//     order: number;
+//     name: string;
+//     sets: number;
+//     repsRange: {
+//         min: number;
+//         max?: number;
+//     };
+//     pace: ExcersiseRepPace,
+//     breakRange: {
+//         min: number;
+//         max?: number;
+//     };
+//     muscleGroups: MuscleGroups[];
+// }
 
 export const WorkoutPlanDay = () => {
-    // const { id } = useParams();
+    const { id: workoutId } = useParams();
     const [openedDetails, setOpenedDetails] = useState<number[]>([]);
     console.log(openedDetails);
 
     const isExcersiseOpened = (excersiseId: number) => openedDetails.includes(excersiseId);
 
+    const fetchWorkout = async () => {
+        const response = await userApi.get(`/trainee/workout-plan-day/${workoutId}`);
+        return response.data.workout;
+    };
+
+    const {
+        data: workout
+    } = useQuery({
+        //czy dodać tu id użytkownika?
+        queryKey: ["workout", workoutId, "excersises"],
+        queryFn: fetchWorkout,
+    });
+
+    if (!workout) return <></>;
+
     return (
         <>
-            <header>{workout.name} ({workout.weekDay})</header>
+            <header>{workout.name} ({workout.week_day}) of {workout.plan.name}</header>
             <section>
                 <ol>
                     {
-                        workoutExercises.map(({
+                        workout.excersises.map(({
                             id,
                             name,
-                            // order,
-                            sets,
-                            repsRange,
-                            // pace,
-                            breakRange,
-                            muscleGroups
+                            break_range,
+                            muscle_subgroups,
+                            pace,
+                            reps_range,
+                            sets_number,
                         }) => {
                             return (
                                 <div key={name}>
                                     <li style={{ margin: "10px" }} >
                                         {name}{" "}
-                                        {sets}S.{" "}
-                                        {repsRange.min}{""}
-                                        {repsRange.max ? `-${repsRange.max}x` : ""}{" "}
-                                        {breakRange.min}
-                                        {breakRange.max ? `-${breakRange.max}sec.` : ""}{" "}
-                                        {muscleGroups.join(", ")}
+                                        {sets_number}S.{" "}
+                                        {reps_range.min}{""}
+                                        {reps_range.max ? `-${reps_range.max}x` : ""}{" "}
+                                        {break_range.min}
+                                        {break_range.max ? `-${break_range.max}sec.` : ""}{" "}
+                                        {muscle_subgroups.map(({ name }) => name).join(", ")}
                                     </li>
                                     <button onClick={() => {
                                         return isExcersiseOpened(id) ?
