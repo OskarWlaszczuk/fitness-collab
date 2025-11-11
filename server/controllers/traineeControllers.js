@@ -68,10 +68,10 @@ export const getTraineeWorkoutPlans = asyncErrorHandler(async (request, response
                     'name', workout_plan_days.name,\
                     'weekDay', workout_plan_days.week_day,\
                     'workoutPlanId', workout_plan_days.workout_plan_id\
-                )\
-            )\
+                ) \
+            ) \
             FROM workout_plan_days \
-        WHERE workout_plans.id = workout_plan_days .workout_plan_id \
+            WHERE workout_plans.id = workout_plan_days .workout_plan_id \
         ) AS workouts\
         FROM workout_plans \
         JOIN trainers  ON trainers.id = workout_plans.trainer_id\
@@ -123,23 +123,39 @@ export const getTraineeWorkoutPlanDay = asyncErrorHandler(async (request, respon
 
     const { rows: excersises } = await pool.query(
         "SELECT \
-        excersises.id AS excersise_id, \
-        excersises.name AS excersise_name, \
-        workout_plan_day_excersises.sets_number AS  excersise_sets_number, \
-        workout_plan_day_excersises.break_range_min_seconds AS  excersise_min_break_seconds, \
-        workout_plan_day_excersises.break_range_max_seconds AS  excersise_max_break_seconds, \
-        workout_plan_day_excersises.eccentric_length_seconds, \
-        workout_plan_day_excersises.concentric_length_seconds, \
-        workout_plan_day_excersises.eccentric_pause_length_seconds, \
-        workout_plan_day_excersises.concentric_pause_length_seconds \
-        FROM 	\
-        workout_plan_day_excersises JOIN excersises \
-        ON workout_plan_day_excersises.excersise_id = excersises.id \
-        JOIN excersise_muscle_subgroups \
-        ON excersises.id = excersise_muscle_subgroups.excersise_id \
-        JOIN muscle_subgroups \
-        ON excersise_muscle_subgroups.muscle_subgroup_id = muscle_subgroups.id \
-        WHERE workout_plan_day_excersises.workout_plan_day_id = $1",
+            excersises.id AS id, \
+            excersises.name AS name, \
+            workout_plan_day_excersises.sets_number AS  sets_number, \
+            json_build_object( \
+                'min', workout_plan_day_excersises.break_range_min_seconds, \
+                'max', workout_plan_day_excersises.break_range_max_seconds\
+            ) AS break_range, \
+            json_build_object( \
+                'min', workout_plan_day_excersises.reps_range_min,\
+                'max', workout_plan_day_excersises.reps_range_max\
+            ) AS reps_range, \
+            json_build_object( \
+                'eccentric', workout_plan_day_excersises.eccentric_length_seconds,  \
+                'concentric', workout_plan_day_excersises.concentric_length_seconds,  \
+                'eccentricPause', workout_plan_day_excersises.eccentric_pause_length_seconds,  \
+                'concentricPause', workout_plan_day_excersises.concentric_length_seconds  \
+            ) AS pace, \
+            ( \
+                SELECT \
+                json_agg( \
+                    json_build_object( \
+                        'id', muscle_subgroups.id, \
+                        'name', muscle_subgroups.name \
+                    ) \
+                ) \
+                FROM muscle_subgroups JOIN excersise_muscle_subgroups \
+                ON excersise_muscle_subgroups.muscle_subgroup_id = muscle_subgroups.id \
+                WHERE excersise_muscle_subgroups.excersise_id = excersises.id  \
+            ) AS muscle_subgroups \
+            FROM 	\
+            workout_plan_day_excersises JOIN excersises \
+            ON workout_plan_day_excersises.excersise_id = excersises.id \
+            WHERE workout_plan_day_excersises.workout_plan_day_id = $1",
         [workoutPlanDayId]
     );
 
@@ -209,4 +225,18 @@ export const getTraineeExcersiseLastEntrySets = asyncErrorHandler(async (request
                 sets: entrySets,
             }
         });
+});
+
+export const getExcersiseInstructions = asyncErrorHandler(async (request, response, next) => {
+    const { id: excersiseId } = request.params;
+    const { rows: excersiseIntructions } = await pool.query(
+        "SELECT excersise_instructions.id, description, name AS category \
+        FROM excersise_instructions \
+        JOIN instruction_categories \
+        ON excersise_instructions.instruction_category_id = instruction_categories.id \
+        WHERE excersise_instructions.excersise_id = $1",
+        [excersiseId]
+    );
+
+    return response.status(200).json({ instructions: excersiseIntructions })
 });
