@@ -99,6 +99,5 @@ export const WorkoutPlanDay = () => {
                 </ol>
             </section>
         </>
-    )
+    );
 };
-//•
