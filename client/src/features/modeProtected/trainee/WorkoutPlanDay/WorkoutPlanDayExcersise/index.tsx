@@ -130,7 +130,7 @@ export const WorkoutPlanDayExcersise = () => {
             {
                 excersiseHintListTypes.map(({ id, name }) => {
                     return (
-                        <>
+                        <div key={name}>
                             <header>{name}</header>
                             <ol>
                                 {
@@ -141,7 +141,7 @@ export const WorkoutPlanDayExcersise = () => {
                                         ))
                                 }
                             </ol>
-                        </>
+                        </div>
                     )
                 })
             }
