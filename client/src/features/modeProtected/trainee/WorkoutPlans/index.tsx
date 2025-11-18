@@ -1,94 +1,35 @@
 import { Link } from "react-router-dom";
 import { StyledWorkoutPlans } from "./styled";
-
-interface WorkoutOverview {
-  id: number;
-  name: string,
-  weekDay: string,
-  excersiseAmount: number,
-}
-
-interface TrainerOverview {
-  id: number;
-  name: string;
-}
-
-interface StyledWorkoutPlans {
-  id: number;
-  trainer: TrainerOverview;
-  name: string;
-  workouts: WorkoutOverview[];
-};
-
-
-const workoutsPlans: StyledWorkoutPlans[] = [
-  {
-    id: 1,
-    trainer: {
-      id: 1,
-      name: "Piotr Hajduk",
-    },
-    name: "PUSH-PULL-LEGS",
-    workouts: [
-      {
-        id: 1,
-        name: "PUSH",
-        weekDay: "monday",
-        excersiseAmount: 5,
-      },
-      {
-        id: 2,
-        name: "PULL",
-        weekDay: "tuesday",
-        excersiseAmount: 5,
-      },
-      {
-        id: 3,
-        name: "LEGS",
-        weekDay: "wednesday",
-        excersiseAmount: 5,
-      },
-    ],
-  },
-  {
-    id: 2,
-    trainer: {
-      id: 1,
-      name: "Piotr Hajduk",
-    },
-    name: "FBW-FBW",
-    workouts: [
-      {
-        id: 4,
-        name: "FBW",
-        weekDay: "monday",
-        excersiseAmount: 6,
-      },
-      {
-        id: 5,
-        name: "FBW",
-        weekDay: "tuesday",
-        excersiseAmount: 6,
-      },
-    ],
-  },
-];
+import { useQuery } from "@tanstack/react-query";
+import { userApi } from "../../../../apiClients";
 
 export const WorkoutPlans = () => {
+  const fetchWorkoutPlans = async () => {
+    const response = await userApi.get("/trainee/workout-plans");
+    return response.data.workoutPlans;
+  };
+
+  const {
+    data: workoutPlans,
+  } = useQuery({
+    //czy dodać tu id użytkownika?
+    queryKey: ["trainee", "workoutPlans"],
+    queryFn: fetchWorkoutPlans,
+  });
 
   return (
     <>
       <h1>Your Workouts</h1>
       {
-        workoutsPlans.map(({ trainer, name: splitName, workouts }) => {
+        workoutPlans?.map(({ id, name, trainer, workouts }) => {
           return (
-            <StyledWorkoutPlans key={trainer.name}>
-              <header>{splitName} by <Link to={`/trainers/${trainer.id}`}>{trainer.name}</Link></header>
+            <StyledWorkoutPlans key={`${name} ${id}`}>
+              <header>{name} by <Link to={`/trainers/${trainer.id}`}>{trainer.name} {trainer.surname}</Link></header>
               <ol>
                 {
-                  workouts.map(({ name, weekDay, excersiseAmount: excersiseNumbers, id }) => (
-                    <Link to={`/workouts/${id}`}>
-                      <li key={name}>{name} ({weekDay}) {excersiseNumbers} excersises</li>
+                  workouts.map(({ id, name, weekDay }) => (
+                    <Link key={`${name} ${id}`} to={`/workout-plan-day/${id}`}>
+                      <li key={name}>{name} ({weekDay})</li>
                     </Link>
                   ))
                 }
