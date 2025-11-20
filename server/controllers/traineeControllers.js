@@ -1,6 +1,7 @@
 import { pool } from "../db.js";
 import { asyncErrorHandler } from "../utils/asyncErrorHandler.js";
 import { CustomError } from "../utils/CustomError.js";
+import format from 'pg-format';
 
 export const getTraineeWorkoutPlan = asyncErrorHandler(async (request, response, next) => {
     const { tokenPayload } = request;
@@ -191,7 +192,6 @@ export const getTraineeExcersiseLastEntrySets = asyncErrorHandler(async (request
         [traineeId, excersiseId]
     );
 
-    //co jeżeli !logExcersiseRows.length ? zwrócić błąd?
 
     if (!logExcersiseRows.length) {
         return response.status(204).json({ entry: null });
@@ -239,6 +239,7 @@ export const getTraineeExcersiseLastEntrySets = asyncErrorHandler(async (request
 
 export const getExcersiseInstructions = asyncErrorHandler(async (request, response, next) => {
     const { id: excersiseId } = request.params;
+    //zmienić zapytania
     const { rows: excersiseIntructions } = await pool.query(
         "SELECT excersise_instructions.id, description, name AS category \
         FROM excersise_instructions \
@@ -249,4 +250,144 @@ export const getExcersiseInstructions = asyncErrorHandler(async (request, respon
     );
 
     return response.status(200).json({ instructions: excersiseIntructions })
+});
+
+
+export const getEntry = asyncErrorHandler(async () => {
+
+});
+
+const saveExcersiseEntry = async ({ exerciseId, traineeId, sets, workoutId }) => {
+    const client = await pool.connect();
+
+    try {
+        await client.query('BEGIN');
+
+        await client.query(
+            "INSERT INTO trainee_log_excersises (excersise_id, trainee_id) \
+            VALUES($1, $2) \
+            ON CONFLICT(excersise_id, trainee_id) \
+            DO NOTHING ",
+            [exerciseId, traineeId]
+        );
+
+        const { rows: logExcersiseRows } = await client.query(
+            "SELECT \
+            id \
+            FROM trainee_log_excersises \
+            WHERE excersise_id = $1 AND trainee_id = $2",
+            [exerciseId, traineeId]
+        )
+
+        console.log(logExcersiseRows);
+
+        const logExcersiseId = logExcersiseRows[0].id;
+
+        const { rows: entryRows } = await client.query(
+            "INSERT INTO trainee_log_excersise_entries (trainee_log_excersise_id, workout_plan_day_id) \
+            VALUES ($1, $2)\
+            RETURNING id",
+            [logExcersiseId, workoutId]
+        );
+
+        const entryId = entryRows[0].id;
+
+        const setsQueryValues = sets.map(set => [
+            entryId,
+            ...Object.values(set)
+        ]);
+
+        const insertSetsQuery = format(
+            'INSERT INTO trainee_log_excersise_entry_sets  ( \
+                trainee_log_excersise_entry_id, \
+                reps,\
+                weight_kg,\
+                eccentric_length_seconds, \
+                concentric_length_seconds,\
+                eccentric_pause_length_seconds, \
+                concentric_pause_length_seconds\
+            ) VALUES %L',
+            setsQueryValues
+        );
+
+        await client.query(insertSetsQuery);
+
+        await client.query("COMMIT");
+    } catch (err) {
+        await client.query("ROLLBACK");
+        throw err
+    } finally {
+        client.release();
+    }
+};
+
+export const addNewExcersiseEntry = asyncErrorHandler(async (request, response, next) => {
+    const { tokenPayload } = request;
+    const {
+        excersiseId,
+        workoutId,
+        sets
+    } = request.body;
+
+    const { rows: traineeRows } = await pool.query("SELECT id FROM trainees WHERE user_id = $1", [tokenPayload.userId]);
+
+    const traineeId = traineeRows[0].id;
+
+    const { rows: workoutPlanRows } = await pool.query(
+        "SELECT \
+        workout_plans.is_active \
+        FROM workout_plans \
+        JOIN workout_plan_days \
+        ON workout_plans.id = workout_plan_days.workout_plan_id \
+        WHERE workout_plan_days.id = $1 AND workout_plans.trainee_id = $2",
+        [workoutId, traineeId]
+    );
+
+    if (!workoutPlanRows.length) {
+        const error = new CustomError("This workout plan does exist or do not belong to this trainee", 403);
+        next(error);
+    }
+
+    const workoutPlan = workoutPlanRows[0];
+
+    if (!workoutPlan.is_active) {
+        const error = new CustomError("This workout plan is not active", 400);
+        next(error);
+    }
+
+    const { rows: workoutSessionRows } = await pool.query(
+        "SELECT \
+        workout_session_statuses.name \
+        FROM trainee_workout_sessions \
+        JOIN workout_session_statuses \
+        ON trainee_workout_sessions.workout_session_status_id = workout_session_statuses.id \
+        WHERE trainee_workout_sessions.workout_plan_day_id = $1",
+        [workoutId]
+    );
+
+    const workoutSession = workoutSessionRows?.[0];
+
+    //sprawdzenie, czy sesja treningu jest aktywna
+    if (!workoutSession && workoutSession.name !== "active") {
+        const error = new CustomError("This workout's session is not active", 400);
+        next(error);
+    }
+
+    const { rows: workoutPlanExcersiseRows } = await pool.query(
+        "SELECT \
+        1\
+        FROM workout_plan_day_excersises \
+        WHERE workout_plan_day_excersises.excersise_id = $1 \
+        AND workout_plan_day_id = $2" ,
+        [excersiseId, workoutId]
+    );
+
+    if (!workoutPlanExcersiseRows.length) {
+        const error = new CustomError("Cannot add entry to this excersise because it is not added to the active workout plan", 400);
+        next(error);
+    }
+
+    await saveExcersiseEntry({ exerciseId: excersiseId, traineeId, sets, workoutId: workoutId });
+
+    return response.sendStatus(201);
 });
