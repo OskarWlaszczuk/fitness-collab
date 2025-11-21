@@ -16,6 +16,9 @@ import { checkIsAccessTokenPassed } from "./middlewares/checkIsAccessTokenPassed
 import { validateAccessTokenSignature } from "./middlewares/validateAccessTokenSignature.js";
 import { checkUserExists } from "./middlewares/checkUserExists.js";
 import { authorizeUserRole } from "./middlewares/authorizeUserRole.js";
+import entryRouter from "./routes/entryRouter.js";
+import setRouter from "./routes/setRouter.js";
+
 config({ path: `${process.cwd()}/.env` });
 
 const __filename = fileURLToPath(import.meta.url);
@@ -37,6 +40,8 @@ app.use("/api/roles", rolesRouter);
 app.use("/api/user", checkIsAccessTokenPassed, validateAccessTokenSignature, checkUserExists, userRouter);
 app.use("/api/trainee", checkIsAccessTokenPassed, validateAccessTokenSignature, authorizeUserRole([1]), checkUserExists, traineeRouter);
 app.use("/api/trainer", checkIsAccessTokenPassed, validateAccessTokenSignature, authorizeUserRole([2]), checkUserExists, trainerRouter);
+app.use("/api/entry", checkIsAccessTokenPassed, validateAccessTokenSignature, authorizeUserRole([1]), checkUserExists, entryRouter);
+app.use("/api/set", checkIsAccessTokenPassed, validateAccessTokenSignature, authorizeUserRole([1]), checkUserExists, setRouter);
 
 const fallbackApiHandler = (request, response, next) => {
     const error = new CustomError(`Can't find ${request.originalUrl} on the server`, 404);
