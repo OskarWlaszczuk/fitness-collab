@@ -20,6 +20,7 @@ import entryRouter from "./routes/entryRouter.js";
 import setRouter from "./routes/setRouter.js";
 import workoutPlanRouter from "./routes/workoutPlanRouter.js";
 import workoutRouter from "./routes/workoutRouter.js";
+import exercisesRouter from "./routes/exercisesRouter.js";
 
 config({ path: `${process.cwd()}/.env` });
 
@@ -46,6 +47,7 @@ app.use("/api/entry", checkIsAccessTokenPassed, validateAccessTokenSignature, au
 app.use("/api/set", checkIsAccessTokenPassed, validateAccessTokenSignature, authorizeUserRole([1]), checkUserExists, setRouter);
 app.use("/api/workout-plan", checkIsAccessTokenPassed, validateAccessTokenSignature, authorizeUserRole([1,2]), checkUserExists, workoutPlanRouter);
 app.use("/api/workout", checkIsAccessTokenPassed, validateAccessTokenSignature, authorizeUserRole([1,2]), checkUserExists, workoutRouter);
+app.use("/api/exercises", checkIsAccessTokenPassed, validateAccessTokenSignature, authorizeUserRole([1,2]), checkUserExists, exercisesRouter);
 
 const fallbackApiHandler = (request, response, next) => {
     const error = new CustomError(`Can't find ${request.originalUrl} on the server`, 404);
