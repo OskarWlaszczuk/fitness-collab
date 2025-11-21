@@ -1,5 +1,5 @@
 import format from "pg-format";
-import { pool } from "../db";
+import { pool } from "../db.js";
 
 export const saveExcersiseEntry = async ({ exerciseId, traineeId, sets, workoutId }) => {
     const client = await pool.connect();
