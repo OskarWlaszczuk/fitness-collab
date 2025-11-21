@@ -6,7 +6,6 @@ import {
     getTraineeWorkoutPlanDay,
     getTraineeExcersiseLastEntrySets,
     getExcersiseInstructions,
-    addNewExcersiseEntry
 } from "../controllers/traineeControllers.js";
 
 const traineeRouter = express.Router();
@@ -17,7 +16,5 @@ traineeRouter.get("/profile", getTraineeProfile);
 traineeRouter.get("/workout-plan-day/:id", getTraineeWorkoutPlanDay);
 traineeRouter.get("/excersise/:id/entry", getTraineeExcersiseLastEntrySets);
 traineeRouter.get("/excersise/:id/instructions", getExcersiseInstructions);
-
-traineeRouter.post("/entry", addNewExcersiseEntry);
 
 export default traineeRouter;
