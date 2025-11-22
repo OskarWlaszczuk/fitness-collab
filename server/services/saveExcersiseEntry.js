@@ -48,13 +48,15 @@ export const saveExcersiseEntry = async ({ exerciseId, traineeId, sets, workoutI
                 concentric_length_seconds,\
                 eccentric_pause_length_seconds, \
                 concentric_pause_length_seconds\
-            ) VALUES %L',
+            ) VALUES %L \
+             RETURNING * ',
             setsQueryValues
         );
 
-        await client.query(insertSetsQuery);
+        const { rows: insertedSets } = await client.query(insertSetsQuery);
 
         await client.query("COMMIT");
+        return insertedSets;
     } catch (err) {
         await client.query("ROLLBACK");
         throw err
