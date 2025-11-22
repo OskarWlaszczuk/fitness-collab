@@ -6,16 +6,38 @@ import { CustomError } from "../utils/CustomError.js";
 export const addEntry = asyncErrorHandler(async (request, response, next) => {
     const { tokenPayload } = request;
 
-    //walidacja danych wejściowych
+    //dodać walidacje danych wejściowych
     const {
-        excersiseId,
+        exerciseId,
         workoutId,
-        sets
+        sets,
+        workoutSessionId
     } = request.body;
 
     const { rows: traineeRows } = await pool.query("SELECT id FROM trainees WHERE user_id = $1", [tokenPayload.userId]);
 
+    //podopieczny nie istnieje
+    if (!traineeRows.length) {
+        const error = new CustomError("Trainee not found", 404);
+        return next(error);
+    }
+
     const traineeId = traineeRows[0].id;
+
+    const { rows: excersiseExistsRows } = await pool.query(
+        "SELECT EXISTS (SELECT 1 FROM excersises WHERE id = $1) AS excersise_exists",
+        [exerciseId]
+    );
+
+    console.log(excersiseExistsRows);
+
+    const isExerciseExists = excersiseExistsRows[0].excersise_exists;
+
+    //ćwiczenie nie istnieje
+    if (!isExerciseExists) {
+        const error = new CustomError("Excersise not found", 404);
+        return next(error);
+    }
 
     const { rows: workoutPlanRows } = await pool.query(
         "SELECT \
@@ -27,50 +49,62 @@ export const addEntry = asyncErrorHandler(async (request, response, next) => {
         [workoutId, traineeId]
     );
 
+    //plan nie istnieje lub nie należy do podopiecznego
     if (!workoutPlanRows.length) {
-        const error = new CustomError("This workout plan does exist or do not belong to this trainee", 403);
-        next(error);
+        const error = new CustomError("This workout plan does not exist or do not belong to this trainee", 403);
+        return next(error);
     }
 
-    const workoutPlan = workoutPlanRows[0];
+    const isWorkoutPlanActive = workoutPlanRows[0].is_active;
 
-    if (!workoutPlan.is_active) {
+    // plan nie jest aktywny
+    if (!isWorkoutPlanActive) {
         const error = new CustomError("This workout plan is not active", 400);
-        next(error);
+        return next(error);
     }
 
     const { rows: workoutSessionRows } = await pool.query(
         "SELECT \
-        workout_session_statuses.name \
+            workout_session_statuses.name \
         FROM trainee_workout_sessions \
         JOIN workout_session_statuses \
         ON trainee_workout_sessions.workout_session_status_id = workout_session_statuses.id \
-        WHERE trainee_workout_sessions.workout_plan_day_id = $1",
-        [workoutId]
+		WHERE trainee_workout_sessions.id = $1 AND trainee_workout_sessions.workout_plan_day_id = $2 AND trainee_id = $3",
+        [workoutSessionId, workoutId, traineeId]
     );
 
-    const workoutSession = workoutSessionRows?.[0];
+    //podopieczny nie rozpoczął jeszcze sesji treningowej
+    if (!workoutSessionRows.length) {
+        const error = new CustomError("This session does not exist or does not belong to this trainee", 400);
+        return next(error);
+    }
 
-    if (!workoutSession && workoutSession.name !== "active") {
+    const isWorkoutSessionActive = workoutSessionRows[0].name === "active";
+
+    //sesja treningowa nie jest aktywna
+    if (!isWorkoutSessionActive) {
         const error = new CustomError("This workout's session is not active", 400);
-        next(error);
+        return next(error);
     }
 
-    const { rows: workoutPlanExcersiseRows } = await pool.query(
-        "SELECT \
-        1\
-        FROM workout_plan_day_excersises \
-        WHERE workout_plan_day_excersises.excersise_id = $1 \
-        AND workout_plan_day_id = $2" ,
-        [excersiseId, workoutId]
+    const { rows: workoutExerciseRows } = await pool.query(
+        "SELECT EXISTS ( \
+            SELECT \
+                1 \
+            FROM workout_plan_day_excersises \
+            WHERE workout_plan_day_excersises.excersise_id = $1 AND workout_plan_day_id = $2\
+        ) AS exercise_exists_in_workout",
+        [exerciseId, workoutId]
     );
 
-    if (!workoutPlanExcersiseRows.length) {
-        const error = new CustomError("Cannot add entry to this excersise because it is not added to the active workout plan", 400);
-        next(error);
+    const isExerciseInWorkout = workoutExerciseRows[0].exercise_exists_in_workout;
+    //ćwiczenie nie należy do treningu w planie
+    if (!isExerciseInWorkout) {
+        const error = new CustomError("Cannot add entry to this exercise because it is not added to the active workout", 400);
+        return next(error);
     }
 
-    await saveExcersiseEntry({ exerciseId: excersiseId, traineeId, sets, workoutId: workoutId });
+    const insertedSets = await saveExcersiseEntry({ exerciseId, traineeId, sets, workoutId });
 
-    return response.sendStatus(201);
+    return response.status(201).json({ sets: insertedSets });
 });
