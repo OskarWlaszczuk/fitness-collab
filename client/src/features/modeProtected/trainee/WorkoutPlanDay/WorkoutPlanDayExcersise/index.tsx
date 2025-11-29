@@ -1,123 +1,54 @@
-interface Hint {
-    type: "breathing" | "setup" | "execution" | "commonMistakes",
-    order: number;
-    description: string;
-}
+import { useState } from "react";
+import { SetFieldsSection } from "./SetFieldsSection";
+import { useExerciseIdbSetsQuery } from "../../../../../common/hooks/useExerciseIdbSetsQuery";
+import axios from "axios";
 
-const workoutExcersiseDetails = {
-    lastResults: [
-        {
-            setNumber: 1,
-            reps: 10,
-            rir: 2,
-            pace: {
-                eccentric: 2,
-                concentric: 1,
-                eccentricPause: 1,
-                concentricPause: 0,
-            },
-            weight: {
-                type: "kg",
-                amount: 100,
-            },
-        },
-        {
-            setNumber: 1,
-            reps: 10,
-            rir: 2,
-            pace: {
-                eccentric: 2,
-                concentric: 1,
-                eccentricPause: 1,
-                concentricPause: 0,
-            },
-            weight: {
-                type: "kg",
-                amount: 100,
-            },
-        },
-        {
-            setNumber: 1,
-            reps: 10,
-            rir: 2,
-            pace: {
-                eccentric: 2,
-                concentric: 1,
-                eccentricPause: 1,
-                concentricPause: 0,
-            },
-            weight: {
-                type: "kg",
-                amount: 100,
-            },
-        },
-    ],
-    hints: [
-        {
-            id: 1,
-            hint: {
-                type: "breathing",
-                id: 1,
-            },
-            description: "Weź głęboki wdech przed rozpoczęciem zejścia w dół.",
-        },
-        {
-            id: 2,
-            hint: {
-                type: "breathing",
-                id: 2,
-            },
-            description: "opis opis",
-        },
-        {
-            id: 3,
-            hint: {
-                type: "breathing",
-                id: 3,
-            },
-            description: "Ustaw stopy na szerokość barków lub nieco szerzej."
-        },
-        {
-            id: 4,
-            hint: {
-                type: "breathing",
-                id: 4,
-            },
-            description: "Zainicjuj ruch cofnięciem bioder i \
-            jednoczesnym ugięciem kolan."
-        },
-        {
-            id: 5,
-            hint: {
-                type: "breathing",
-                id: 5,
-            },
-            type: "common mistakes",
-            description: "Plecy zaokrąglone w dolnej fazie ruchu."
-        },
-    ],
-};
-
-const excersiseHintListTypes = [
+//różna konfiguracja pól serii w zależności od typu ćwiczenia
+//dobieranie tablicy konfiguracyjnej w zależności od szczegółów pobranego ćwiczenia
+const setFieldsConfig = [
     {
-        id: 1,
-        name: "breathing",
+        id: "reps",
+        name: "reps",
+        type: "number",
+        label: "x",
     },
     {
-        id: 2,
-        name: "execution",
+        id: "weightKg",
+        name: "weightKg",
+        type: "number",
+        label: "kg",
     },
     {
-        id: 3,
-        name: "common mistakes",
-    },
-    {
-        id: 4,
-        name: "setup",
+        id: "rir",
+        name: "rir",
+        type: "number",
+        label: "RiR",
     },
 ];
 
-export const WorkoutPlanDayExcersise = () => {
+const defaultSet = {
+    id: 1,
+    weightKg: undefined,
+    reps: undefined,
+    rir: undefined,
+};
+
+interface WorkoutExerciseProps {
+    exerciseId: number;
+}
+
+
+export const WorkoutExercise = ({ exerciseId }: WorkoutExerciseProps) => {
+    const { idbSets } = useExerciseIdbSetsQuery(exerciseId);
+    console.log(idbSets);
+
+    //jedyne źródło prawdy z danymi pól serii
+    //jeżeli w IDB zapisane są serie dla konkretnego ćwiczenia to są dodawane na start do stanu sets
+    //dzięki temu po odświeżeniu podstrony user nei traci swoich danych 
+    //jeżeli user nie zapisał żadnych danych serii to doda się domyślna tablica
+    const [sets, setSets] = useState(idbSets || [defaultSet]);
+
+
 
     return (
         <section
@@ -127,25 +58,27 @@ export const WorkoutPlanDayExcersise = () => {
                 margin: "8px 0"
             }}
         >
+            <button
+                disabled={sets.some(set => Object.values(set).some(value => !value))}
+                onClick={() => setSets(sets => [...sets, { ...defaultSet, id: sets.length + 1 }])}
+            >
+                Add set
+            </button><br />
             {
-                excersiseHintListTypes.map(({ id, name }) => {
-                    return (
-                        <div key={name}>
-                            <header>{name}</header>
-                            <ol>
-                                {
-                                    workoutExcersiseDetails.hints
-                                        .filter(({ hint }) => hint.id === id)
-                                        .map(({ description }) => (
-                                            <li>{description}</li>
-                                        ))
-                                }
-                            </ol>
-                        </div>
-                    )
-                })
+                sets
+                    .sort((a, b) => a.id - b.id)
+                    .map(set => (
+                        <>
+                            <SetFieldsSection
+                                key={set.id}
+                                exerciseId={exerciseId}
+                                fieldsConfig={setFieldsConfig}
+                                set={set}
+                                setSets={setSets}
+                            /><br />
+                        </>
+                    ))
             }
-
         </section>
     );
 };
