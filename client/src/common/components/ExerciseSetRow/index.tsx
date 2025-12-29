@@ -14,9 +14,9 @@ export const ExerciseSetRow = ({ set, onFieldChange, setFieldsConfig }) => {
                                 onFieldChange(event);
                             }}
                             min={0}
-                        >
-                            <label>{setConfig.label}</label>
-                        </input>
+                        />
+                        <label>{setConfig.label}</label>
+
                     </>
                 ))
             }
