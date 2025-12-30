@@ -2,6 +2,8 @@ import { useState } from "react";
 import type { Set } from "../../../types/Set";
 import { ExerciseSetRow } from "../../ExerciseSetRow";
 import { IdbSetRows } from "./IdbSetRows";
+import { useQueryClient } from "@tanstack/react-query";
+import type { IdbSet } from "../../../hooks/useExerciseIdbSetsQuery";
 
 interface ExerciseSetsProps {
     exerciseId: number;
@@ -34,8 +36,31 @@ export const ExerciseSets = ({ exerciseId }: ExerciseSetsProps) => {
             label: "RiR",
         },
     ];
+    const queryClient = useQueryClient();
 
     const [draftSet, setDraftSet] = useState<Set | undefined>(defaultDraftSet);
+
+    const addNewIdbSet = (newSet) => {
+        queryClient.setQueryData(
+            ["idb", "exerciseSets", exerciseId],
+            (sets: IdbSet[]) => (
+                [
+                    ...sets,
+                    newSet
+                ]
+            )
+        );
+    };
+
+    const onDraftSetChange = (updatedSet) => {
+        console.log(`set ${updatedSet.id} zmienił`);
+        const isSetCompleted = Object.values(updatedSet).every(field => !!field);
+
+        if (isSetCompleted) {
+            console.log(`draft set completed`);
+            addNewIdbSet(draftSet);
+        }
+    };
 
     return (
         <>
@@ -48,16 +73,26 @@ export const ExerciseSets = ({ exerciseId }: ExerciseSetsProps) => {
             <IdbSetRows setFieldsConfig={setFieldsConfig} exerciseId={exerciseId} />
             {
                 draftSet && (
-                    <ExerciseSetRow
-                        set={draftSet}
-                        setFieldsConfig={setFieldsConfig}
-                        onFieldChange={({ target }) => {
-                            const fieldName = target.name;
-                            const fieldValue = target.value;
+                    <>
+                        <ExerciseSetRow
+                            onSetChange={onDraftSetChange}
+                            set={draftSet}
+                            setFieldsConfig={setFieldsConfig}
+                            onFieldChange={({ target }) => {
+                                const fieldName = target.name;
+                                const fieldValue = target.value;
 
-                            setDraftSet(set => ({ ...set!, [fieldName]: fieldValue }));
-                        }}
-                    />
+                                setDraftSet(set => ({ ...set!, [fieldName]: fieldValue }));
+                            }}
+                        />
+                        <button
+                            onClick={() => {
+                                setDraftSet(undefined);
+                            }}
+                        >
+                            Delete
+                        </button>
+                    </>
                 )
             }
         </>
