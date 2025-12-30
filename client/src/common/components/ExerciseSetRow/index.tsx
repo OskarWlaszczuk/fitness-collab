@@ -1,5 +1,13 @@
-export const ExerciseSetRow = ({ set, onFieldChange, setFieldsConfig }) => {
-    //system sprawdzania wiersza serii po zmianie jednego z jego pól
+import { useEffect } from "react";
+
+export const ExerciseSetRow = ({ set, onFieldChange, setFieldsConfig, onSetChange }) => {
+
+    useEffect(() => {
+        if (set.hasChanged) {
+            onSetChange(set);
+        }
+    }, [set, onSetChange]);
+
     return (
         <div>
             {
