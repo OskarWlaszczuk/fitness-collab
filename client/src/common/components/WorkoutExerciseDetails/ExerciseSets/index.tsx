@@ -44,23 +44,16 @@ export const ExerciseSets = ({ exerciseId }: ExerciseSetsProps) => {
     const updateIdbSetMutation = useUpdateIdbSetMutation(exerciseId);
     const deleteIdbSetMutation = useDeleteIdbSetMutation(exerciseId);
 
-    const onIdbSetChange = (updatedSet) => {
-        const isSetCompleted = Object.values(updatedSet).every(field => !!field);
-        const { hasChanged, ...set } = updatedSet;
-
-        if (isSetCompleted) {
-            updateIdbSetMutation.mutate(set)
-        }
+    const onIdbSetComplete = (completedSet) => {
+        updateIdbSetMutation.mutate(completedSet);
     };
 
-    const onDraftSetChange = (updatedSet) => {
-        const isSetCompleted = Object.values(updatedSet).every(field => !!field);
-        const { hasChanged, ...set } = updatedSet;
+    const onDraftSetComplete = (completedSet) => {
+        console.log("Saving new idb set");
 
-        if (isSetCompleted) {
-            addNewIdbSetMutation.mutate({ set, exerciseId })
-            setDraftSet(undefined);
-        }
+        addNewIdbSetMutation.mutate({ set: completedSet, exerciseId });
+
+        // setDraftSet(undefined);
     };
 
     const idbSets = exerciseIdbSetsQuery.data;
@@ -83,14 +76,14 @@ export const ExerciseSets = ({ exerciseId }: ExerciseSetsProps) => {
                     .map(set => (
                         <>
                             <ExerciseSetRow
-                                onSetChange={onIdbSetChange}
+                                onSetComplete={onIdbSetComplete}
                                 set={set}
                                 setFieldsConfig={setFieldsConfig}
                                 onFieldChange={({ target }) => {
                                     const changedField = target.name;
                                     const newFieldValue = target.value;
                                     //update stanu widoku
-                                    const updatedSet = { ...set, [changedField]: newFieldValue, hasChanged: true };
+                                    const updatedSet = { ...set, [changedField]: newFieldValue };
                                     queryClient.setQueryData(
                                         ["idb", "exerciseSets", exerciseId],
                                         (sets) => [
@@ -99,10 +92,11 @@ export const ExerciseSets = ({ exerciseId }: ExerciseSetsProps) => {
                                         ]
                                     );
                                 }}
+                                isSetDisabled={updateIdbSetMutation.isPending}
                             />
                             <button
                                 onClick={() => {
-                                    deleteIdbSetMutation.mutate(set.id)
+                                    deleteIdbSetMutation.mutate(set.id);
                                 }}
                             >
                                 delete
@@ -114,15 +108,17 @@ export const ExerciseSets = ({ exerciseId }: ExerciseSetsProps) => {
                 draftSet && (
                     <>
                         <ExerciseSetRow
-                            onSetChange={onDraftSetChange}
+                            onSetComplete={onDraftSetComplete}
                             set={draftSet}
                             setFieldsConfig={setFieldsConfig}
                             onFieldChange={({ target }) => {
                                 const fieldName = target.name;
                                 const fieldValue = target.value;
+                                console.log("updating the field");
 
-                                setDraftSet(set => ({ ...set!, [fieldName]: fieldValue, hasChanged: true }));
+                                setDraftSet(set => ({ ...set!, [fieldName]: fieldValue }));
                             }}
+                            isSetDisabled={addNewIdbSetMutation.isPending}
                         />
                         <button
                             onClick={() => {
