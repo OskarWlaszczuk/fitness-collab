@@ -1,5 +1,5 @@
 import { useLayoutEffect } from "react";
-import { userApi } from "../../apiClients";
+import { api } from "../../apiClients";
 import { useAccessTokenQuery } from "../../common/hooks/useAccessTokenQuery";
 import { useNavigate } from "react-router-dom";
 import { useLogoutUserMutation } from "../../common/hooks/useLogoutUserMutation";
@@ -10,7 +10,7 @@ export const useUserApiInterceptors = () => {
   const { logout } = useLogoutUserMutation();
 
   useLayoutEffect(() => {
-    userApi.interceptors.request.use((config) => {
+    api.interceptors.request.use((config) => {
       if (accessToken) {
         config.headers.Authorization = `Bearer ${accessToken}`;
       }
@@ -18,7 +18,7 @@ export const useUserApiInterceptors = () => {
       return config;
     });
 
-    userApi.interceptors.response.use(
+    api.interceptors.response.use(
       response => response,
       async (error) => {
         try {
