@@ -13,7 +13,7 @@ import { Unauthorized } from "../../features/modeProtected/shared/Unauthorized";
 import { Missing } from "../../features/public/Missing";
 import { useUserApiInterceptors } from "./useUserApiInterceptors";
 import { TrainerProfile } from "../../features/modeProtected/shared/TrainerProfile";
-import { WorkoutPlanDay } from "../../features/modeProtected/trainee/WorkoutPlanDay"
+import { Workout } from "../../features/modeProtected/trainee/Workout"
 import { ExcersiseLog } from "../../features/modeProtected/trainee/ExcersiseLog";
 import { ExcersiseLogEntries } from "../../features/modeProtected/trainee/ExcersiseLogEntries";
 
@@ -36,7 +36,7 @@ export const App = () => {
 
           <Route element={<RoleProtectedRoute allowedRoles={[1]} />}>
             <Route path="/workout-plans" element={<WorkoutPlans />} />
-            <Route path="/workout-plan-day/:id" element={<WorkoutPlanDay />} />
+            <Route path="/workout-plan-day/:id" element={<Workout />} />
             <Route path="/excersise-log" element={<ExcersiseLog />} />
             <Route path="/excersise-log-entries/:id" element={<ExcersiseLogEntries />} />
           </Route>
