@@ -1,36 +1,13 @@
-import { useQuery } from "@tanstack/react-query";
-import { useAccessTokenQuery } from "../../../../common/hooks/useAccessTokenQuery";
 import { useUserActiveRoleQuery } from "../../../../common/hooks/useUserActiveRoleQuery.ts";
-import { userApi } from "../../../../apiClients";
+import { useUserProfileQuery } from "../../../../common/hooks/useUserProfileQuery.ts";
 
 export const Home = () => {
-    const { accessToken } = useAccessTokenQuery();
     const { activeRole } = useUserActiveRoleQuery();
-
-    const getUser = async () => {
-        try {
-            const response = await userApi.get("/profile");
-            return response.data;
-        } catch (error) {
-            console.log(error);
-        }
-    };
-
-    const userFreshTimeMin = 60 * 60 * 1000;
-
-    const { data: userProfile } = useQuery({
-        queryKey: ["user", "profile"],
-        queryFn: getUser,
-        staleTime: userFreshTimeMin,
-        gcTime: userFreshTimeMin,
-        enabled: !!accessToken,
-        refetchOnWindowFocus: false,
-    });
-
+    const userProfileQuery = useUserProfileQuery();
 
     return (
         <div style={{ color: "black" }}>
-            hello {activeRole?.name} {userProfile?.user.name}
+            hello {activeRole?.name} {userProfileQuery.data?.user.name}
         </div>
     );
 };
