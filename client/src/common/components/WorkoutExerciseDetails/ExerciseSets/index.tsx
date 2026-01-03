@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import type { Set } from "../../../types/Set";
 import { ExerciseSetRow } from "../../ExerciseSetRow";
 import { useExerciseIdbSetsQuery } from "../../../hooks/useExerciseIdbSetsQuery";
 import { useSaveIdbSetMutation } from "../../../hooks/useSaveIdbSet";
@@ -35,7 +34,7 @@ export const ExerciseSets = ({ exerciseId }: ExerciseSetsProps) => {
     const exerciseIdbSetsQuery = useExerciseIdbSetsQuery(exerciseId);
     const addNewIdbSetMutation = useSaveIdbSetMutation();
     const updateIdbSetMutation = useUpdateIdbSetMutation();
-    const deleteIdbSetMutation = useDeleteIdbSetMutation(exerciseId);
+    const deleteIdbSetMutation = useDeleteIdbSetMutation();
     const [draftSet, setDraftSet] = useState({
         weightKg: undefined,
         reps: undefined,
