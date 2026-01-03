@@ -34,7 +34,6 @@ export const getExerciseSets = async (exerciseId): Promise<IdbSet[]> => {
 
     return new Promise((resolve, reject) => {
         const transaction = db.transaction(["exerciseSets"], "readwrite");
-        console.log("getExerciseSets");
 
         const setsStore = transaction.objectStore("exerciseSets");
         const exerciseIdIndex = setsStore.index("exerciseId");
@@ -56,7 +55,6 @@ export const addNewExerciseSet = async (exerciseId: number, set: Set): Promise<I
     const db = await openDB();
 
     return new Promise((resolve, reject) => {
-        console.log("promise");
 
         //otwarcie transakcji do konkretnej bazy, określenie operacji
         const transaction = db.transaction(["exerciseSets", "exercises"], "readwrite");
@@ -67,16 +65,13 @@ export const addNewExerciseSet = async (exerciseId: number, set: Set): Promise<I
         //sprawdzenie, czy ćwiczenie istnieje w exercises store
         //pobranie danych ze store na podstawie key path
         const exerciseQuery = exercisesStore.get(exerciseId);
-        console.log(exerciseQuery);
 
         exerciseQuery.onsuccess = () => {
             //handler po pobraniu danych
             const exercise = exerciseQuery.result
-            console.log(exercise);
 
             if (!exercise) {
                 //domyślnie dodać rzucanie błędu, jeżeli ćwiczenia nie ma w bazie
-                console.log(`Exercise o id ${exerciseId} nie istnieje IDB, zapisywanie...`);
 
                 //dodać ćwiczenie do exercises store
                 exercisesStore.put({ id: exerciseId });
@@ -89,7 +84,6 @@ export const addNewExerciseSet = async (exerciseId: number, set: Set): Promise<I
         }
 
         const addSetQuery = setsStore.put({ exerciseId, ...set });
-        console.log("sss");
 
 
         addSetQuery.onsuccess = () => {
@@ -119,14 +113,14 @@ export const addNewExerciseSet = async (exerciseId: number, set: Set): Promise<I
 
 export const updateExercisSet = async (set) => {
     const db = await openDB();
-    console.log("inside updateExercisSet");
+    console.log("mutating set:", set);
 
     return new Promise((resolve, reject) => {
         const transaction = db.transaction(["exerciseSets"], "readwrite");
 
         const setsStore = transaction.objectStore("exerciseSets");
 
-        const updateSetQuery = setsStore.put(set);
+        setsStore.put(set);
 
         const getUpdatedSetQuery = setsStore.get(set.id);
         getUpdatedSetQuery.onsuccess = () => {
@@ -148,5 +142,30 @@ export const updateExercisSet = async (set) => {
             //czy zamykać połączenie po udanej transakcji?
             db.close();
         }
+    });
+};
+
+export const deleteExerciseSet = async (setId) => {
+    const db = await openDB();
+
+    return new Promise((resolve, reject) => {
+        const transaction = db.transaction(["exerciseSets"], "readwrite");
+
+        const setsStore = transaction.objectStore("exerciseSets");
+
+        const updateSetQuery = setsStore.delete(setId);
+
+        updateSetQuery.onsuccess = () => {
+            resolve(updateSetQuery.result)
+        };
+
+        updateSetQuery.onerror = () => {
+            resolve(updateSetQuery.error)
+        };
+
+        transaction.oncomplete = () => {
+            //czy zamykać połączenie po udanej transakcji?
+            db.close();
+        };
     });
 };
