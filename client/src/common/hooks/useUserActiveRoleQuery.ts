@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { userApi } from "../../apiClients";
+import { api } from "../../apiClients";
 import { useAccessTokenQuery } from "./useAccessTokenQuery";
 import type { UserRole } from "../types/UserRole";
 
@@ -14,7 +14,7 @@ export const useUserActiveRoleQuery = () => {
     const refreshTimeMin = 15 * 60 * 1000;
     //jak obsługiwać błędu queryFn?
     const fetchUserActiveRole = async (): Promise<UserRole> => {
-        const response = await userApi.get<UserActiveRoleResponse>("/activeRole");
+        const response = await api.get<UserActiveRoleResponse>("/user/activeRole");
         return response.data.role;
     };
 
