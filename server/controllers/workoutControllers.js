@@ -32,7 +32,7 @@ export const getWorkout = asyncErrorHandler(async (request, response, next) => {
 
     const workout = workoutRows[0];
 
-    const { rows: excersises } = await pool.query(
+    const { rows: exercises } = await pool.query(
         "SELECT \
             excersises.id AS id, \
             excersises.name AS name, \
@@ -73,6 +73,6 @@ export const getWorkout = asyncErrorHandler(async (request, response, next) => {
     return response
         .status(200)
         .json({
-            workout: { ...workout, excersises }
+            workout: { ...workout, exercises }
         });
 });
