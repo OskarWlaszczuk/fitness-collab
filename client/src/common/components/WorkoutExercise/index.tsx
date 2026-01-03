@@ -1,11 +1,10 @@
-import { useIsOpen } from "../../hooks/useIsOpen";
+import { useState } from "react";
 import { WorkoutExerciseDetails } from "../WorkoutExerciseDetails";
 
 export const WorkoutExercise = ({ exercise }) => {
     //wynieść zarządzanie otwieraniem ćwiczeń wyżej do poziomu listy ?
     //lepsze zarządzanie, na przykład jeśli bym chciał, aby tylko konkretne elementy były otwarte na start?
-
-    const { isOpen, setIsOpen } = useIsOpen(false);
+    const [isOpen, setIsOpen] = useState<boolean>(false);
 
     return (
         <div>
