@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useLayoutEffect, useState } from "react";
 import { ExerciseSetRow } from "../../ExerciseSetRow";
 import { useExerciseIdbSetsQuery } from "../../../hooks/useExerciseIdbSetsQuery";
 import { useSaveIdbSetMutation } from "../../../hooks/useSaveIdbSet";
@@ -77,13 +77,11 @@ export const ExerciseSets = ({ exerciseId }: ExerciseSetsProps) => {
 
     const idbSets = exerciseIdbSetsQuery.data;
 
-    useEffect(() => {
+    useLayoutEffect(() => {
         if (addNewIdbSetMutation.isSuccess) {
             setDraftSet(undefined);
         }
     }, [addNewIdbSetMutation.isSuccess]);
-
-
 
     return (
         <>
@@ -143,16 +141,6 @@ export const ExerciseSets = ({ exerciseId }: ExerciseSetsProps) => {
                                 >
                                     delete
                                 </button>
-                                {
-                                    (set.id === addNewIdbSetMutation.data?.set.id) && (
-                                        <p>Set saved</p>
-                                    )
-                                }
-                                {
-                                    (set.id === updateIdbSetMutation.data?.id) && (
-                                        <p>Set updated</p>
-                                    )
-                                }
                             </li>
                         ))
                 }
