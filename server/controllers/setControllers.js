@@ -1,6 +1,6 @@
 import { pool } from "../db.js";
 import { asyncErrorHandler } from "../utils/asyncErrorHandler.js";
-import { CustomError } from "../utils/customError.js";
+import { CustomError } from "../utils/CustomError.js";
 
 export const editSet = asyncErrorHandler(async (request, response, next) => {
     const { tokenPayload } = request;
@@ -37,8 +37,8 @@ export const editSet = asyncErrorHandler(async (request, response, next) => {
             FROM trainee_log_excersise_entries \
             JOIN trainee_log_excersises \
             ON trainee_log_excersise_entries.trainee_log_excersise_id = trainee_log_excersises.id \
-            WHERE trainee_log_excersise_entries.id = 33 AND trainee_log_excersises.trainee_id = 3 \
-            ) \"",
+            WHERE trainee_log_excersise_entries.id = $1 AND trainee_log_excersises.trainee_id = $2 \
+        )",
         [entryId, traineeId]
     );
 
