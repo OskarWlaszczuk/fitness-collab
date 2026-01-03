@@ -11,7 +11,7 @@ export const addEntry = asyncErrorHandler(async (request, response, next) => {
         exerciseId,
         workoutId,
         sets,
-        workoutSessionId
+        sessionId
     } = request.body;
 
     const { rows: traineeRows } = await pool.query("SELECT id FROM trainees WHERE user_id = $1", [tokenPayload.userId]);
@@ -70,7 +70,7 @@ export const addEntry = asyncErrorHandler(async (request, response, next) => {
         JOIN workout_session_statuses \
         ON trainee_workout_sessions.workout_session_status_id = workout_session_statuses.id \
 		WHERE trainee_workout_sessions.id = $1 AND trainee_workout_sessions.workout_plan_day_id = $2 AND trainee_id = $3",
-        [workoutSessionId, workoutId, traineeId]
+        [sessionId, workoutId, traineeId]
     );
 
     //podopieczny nie rozpoczął jeszcze sesji treningowej
@@ -105,6 +105,6 @@ export const addEntry = asyncErrorHandler(async (request, response, next) => {
     }
 
     const insertedSets = await saveExcersiseEntry({ exerciseId, traineeId, sets, workoutId });
-
+    //zwrócić dane wpisu
     return response.status(201).json({ sets: insertedSets });
 });
